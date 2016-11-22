@@ -1,0 +1,11 @@
+Metadata-Version: 1.1
+Name: VFR
+Version: 0.1.1
+Summary: Python interface for VFR scene graph library
+Home-page: UNKNOWN
+Author: Yoshikawa, Hiroyuki, FUJITSU LTD.
+Author-email: yoh@jp.fujitsu.com
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Requires: numpy, PyOpenGL, wxPython(optional)

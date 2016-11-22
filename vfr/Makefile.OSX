@@ -1,0 +1,18 @@
+# Makefile for vfr python
+
+.SUFFIXES: .py .pyc .pyo
+
+
+all : lib
+
+lib ::
+	(cd lib; make -f $(MAKEFILE_LIST))
+
+clean ::
+	rm -f *.pyc *.pyo
+	(cd lib; make -f $(MAKEFILE_LIST) clean)
+
+distclean : clean
+	(cd lib; make -f $(MAKEFILE_LIST) distclean)
+
+

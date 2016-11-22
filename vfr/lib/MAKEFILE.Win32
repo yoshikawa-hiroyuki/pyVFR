@@ -1,0 +1,51 @@
+#
+# MAKEFILE for impl
+#
+
+TARGET=vfr_impl
+OBJS=	drawArea_impl.obj \
+	gfxLetters_impl.obj \
+	gfxMesh2D_impl.obj \
+	gfxNode_impl.obj \
+	gfxTriangles_impl.obj \
+	gfxVectors_impl.obj \
+	obj_impl.obj \
+	obj_io_impl.obj \
+
+
+INC_DIR= ../../../include
+
+CFLAGS= /D_WIN32 /DWIN32 /W3 /GR /I$(INC_DIR) \
+ /O1 /DNDEBUG /D_WINDOWS /DWINVER=0x400 /D_MT /DwxUSE_GUI=1 /FD /EHsc /MT
+
+LDFLAGS=/OUT:$(TARGET).dll \
+  /DLL /SUBSYSTEM:WINDOWS /MANIFEST \
+  /IMPLIB:$(TARGET).lib /MACHINE:X86
+
+LDLIBS=  OpenGL32.lib GLU32.lib \
+  kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib \
+  shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib
+
+
+CXX = cl -c
+LINK = link
+MT = mt
+
+.SUFFIXES: .cpp .obj
+
+
+all : $(TARGET).dll
+
+$(TARGET).dll : $(OBJS)
+	$(LINK) $(LDFLAGS) -out:$@ $(OBJS) $(LDLIBS)
+	$(MT) -manifest $(TARGET).dll.manifest -outputresource:$(TARGET).dll;2
+
+.cpp.obj :
+	$(CXX) $(CFLAGS) $<
+
+clean : 
+	-@erase $(OBJS) $(TARGET).dll.manifest $(TARGET).lib
+
+distclean : clean
+	-@erase $(TARGET).dll *.idb *.exp
+

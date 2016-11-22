@@ -1,0 +1,37 @@
+# makefile for impl
+G=-g
+TARGET = vfr_impl.so
+OBJS = drawArea_impl.o \
+     gfxLetters_impl.o \
+     gfxMesh2D_impl.o \
+     gfxNode_impl.o \
+     gfxTriangles_impl.o \
+     gfxVectors_impl.o \
+     obj_impl.o \
+     obj_io_impl.o \
+
+INC_DIR = ../../../include
+
+CXX=g++
+CXXFLAGS=$(G) -fPIC -I$(INC_DIR)
+
+LINK=$(CXX)
+LDFLAGS=-shared -fPIC $(G)
+LDLIBS=-lGL -lGLU
+
+RM = rm -f
+CP = cp
+
+all: $(TARGET)
+
+$(TARGET) : $(OBJS)
+	$(CXX) -o $@ $(OBJS) $(LDFLAGS) $(LDLIBS)
+	$(RM) lib$(TARGET)
+	$(CP) $(TARGET) lib$(TARGET)
+
+clean:
+	$(RM) $(OBJS)
+
+distclean: clean
+	$(RM) $(TARGET) lib$(TARGET)
+

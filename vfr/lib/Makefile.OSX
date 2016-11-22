@@ -1,0 +1,37 @@
+# makefile for impl
+
+TARGET = vfr_impl.dylib
+OBJS = drawArea_impl.o \
+     gfxLetters_impl.o \
+     gfxMesh2D_impl.o \
+     gfxNode_impl.o \
+     gfxTriangles_impl.o \
+     gfxVectors_impl.o \
+     obj_impl.o \
+     obj_io_impl.o \
+
+INC_DIR = ../../../include
+
+CXX=g++
+CXXFLAGS=-g -fPIC -c -I$(INC_DIR)
+
+LINK=$(CXX)
+LDFLAGS=-dynamiclib -g -fPIC
+LDLIBS=-framework OpenGL
+
+RM = rm -f
+CP = cp
+
+all: $(TARGET)
+
+$(TARGET) : $(OBJS)
+	$(LINK) -o $@ $(OBJS) $(LDFLAGS) $(LDLIBS)
+	$(RM) lib$(TARGET)
+	$(CP) $(TARGET) lib$(TARGET)
+
+clean:
+	$(RM) $(OBJS)
+
+distclean: clean
+	$(RM) $(TARGET) lib$(TARGET)
+
