@@ -31,8 +31,8 @@ vfr_impl.gfxLetters_DrawLetter.argtypes = [
 
 
 #----------------------------------------------------------------------
-from gfxNode import *
-from utilMath import *
+from .gfxNode import *
+from .utilMath import *
 
 class Letters(GfxNode):
     """

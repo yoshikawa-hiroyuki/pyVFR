@@ -34,8 +34,8 @@ vfr_impl.gfxNode_DrawLineStrip.argtypes = [
 
 
 #----------------------------------------------------------------------
-from gfxNode import *
-from utilMath import *
+from .gfxNode import *
+from .utilMath import *
 
 class Lines(GfxNode):
     """

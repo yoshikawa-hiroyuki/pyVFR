@@ -6,7 +6,7 @@ vfr scene-graph library
 Copyright(c) RIKEN, 2008-2009, All Right Reserved.
 
 """
-from utilMath import *
+from .utilMath import *
 
 
 class XForm(object):

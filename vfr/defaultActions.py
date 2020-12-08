@@ -5,11 +5,11 @@ vfr scene-graph library
 Copyright(c) RIKEN, 2008-2009, All Right Reserved.
 
 """
-from events import *
-import camera
-import scene
 import wx
 import math
+from .events import *
+from . import camera
+from . import scene
 
 
 #----------------------------------------------------------------------

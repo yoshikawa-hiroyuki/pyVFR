@@ -10,10 +10,10 @@ import wx
 from wx import glcanvas
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from gfxNode import *
-from events import *
-from drawArea import DrawArea
 from sys import platform
+from .gfxNode import *
+from .events import *
+from .drawArea import DrawArea
 
 
 """マウスイベント修飾キータイプ"""
@@ -36,9 +36,10 @@ class OglCanvas(glcanvas.GLCanvas):
                                    pos=pos, size=size, attribList=attrLst)
         self._da = da
         self.ctx = glcanvas.GLContext(self)
+        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
         # events
-        self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
+        #self.Bind(wx.EVT_ERASE_BACKGROUND, self.OnEraseBackground)
         self.Bind(wx.EVT_SIZE, self.OnSize)
         self.Bind(wx.EVT_PAINT, self.OnPaint)
         self.Bind(wx.EVT_LEFT_DOWN, self.OnMouseLeftDown)
@@ -67,6 +68,8 @@ class OglCanvas(glcanvas.GLCanvas):
         サイズ変更のコールバック
         - evt: wxイベント
         """
+        size = self.size = self.GetClientSize()
+        self.SetCurrent(self.ctx)
         if self._da:
             self._da.resized()
         evt.Skip()

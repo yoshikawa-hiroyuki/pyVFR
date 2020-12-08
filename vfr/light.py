@@ -7,8 +7,8 @@ Copyright(c) RIKEN, 2008-2009, All Right Reserved.
 
 """
 import math
-from gfxNode import *
 from OpenGL.GL import *
+from .gfxNode import *
 
 
 #----------------------------------------------------------------------

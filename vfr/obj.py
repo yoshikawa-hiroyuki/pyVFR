@@ -58,7 +58,7 @@ vfr_impl.ObjData_LoadSLB.restype = C.c_int
 
 
 #----------------------------------------------------------------------
-from utilMath import *
+from .utilMath import *
 
 class Obj(object):
     """
@@ -187,11 +187,11 @@ class Obj(object):
         """
         if not self.p_impl: return False;
         if fmt == 'obj':
-            ret = vfr_impl.ObjData_LoadOBJ(self.p_impl, path)
+            ret = vfr_impl.ObjData_LoadOBJ(self.p_impl, path.encode('utf-8'))
         elif fmt == 'sla':
-            ret = vfr_impl.ObjData_LoadSLA(self.p_impl, path)
+            ret = vfr_impl.ObjData_LoadSLA(self.p_impl, path.encode('utf-8'))
         elif fmt == 'slb':
-            ret = vfr_impl.ObjData_LoadSLB(self.p_impl, path)
+            ret = vfr_impl.ObjData_LoadSLB(self.p_impl, path.encode('utf-8'))
         self.updateObjImpl()
         self.generateBbox()
         return ret

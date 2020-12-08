@@ -5,7 +5,7 @@ vfr scene-graph library
 Copyright(c) RIKEN, 2008-2009, All Right Reserved.
 
 """
-from gfxNode import *
+from .gfxNode import *
 
 
 #----------------------------------------------------------------------

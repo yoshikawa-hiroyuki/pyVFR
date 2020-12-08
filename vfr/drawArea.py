@@ -11,9 +11,9 @@ import numpy as N
 import ctypes as C
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from gfxNode import *
-from events import *
-from utilMath import *
+from .gfxNode import *
+from .events import *
+from .utilMath import *
 
 #----------------------------------------------------------------------
 import os.path

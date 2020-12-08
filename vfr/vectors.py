@@ -30,7 +30,7 @@ vfr_impl.gfxNode_DrawPoints.argtypes = [
 
 
 #----------------------------------------------------------------------
-from gfxNode import *
+from .gfxNode import *
 
 """ベクトルポジションタイプ"""
 (VECPOS_NORMAL, VECPOS_CENTER, VECPOS_TIP) = range(3)
@@ -54,7 +54,7 @@ class Vectors(GfxNode):
 
     def __init__(self, name =Node._NONAME, suicide =False):
         GfxNode.__init__(self, name, suicide)
-	self._renderMode = RT_WIRE
+        self._renderMode = RT_WIRE
         self.showHead = True
         self.posType = VECPOS_NORMAL
         self.headScale = 0.2

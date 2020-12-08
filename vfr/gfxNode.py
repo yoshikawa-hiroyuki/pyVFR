@@ -8,10 +8,10 @@ Copyright(c) RIKEN, 2008-2009, All Right Reserved.
 """
 import numpy as N
 import ctypes as C
-from node import *
-from obj import *
 from OpenGL.GL import *
-from utilMath import *
+from .node import *
+from .obj import *
+from .utilMath import *
 
 
 #----------------------------------------------------------------------

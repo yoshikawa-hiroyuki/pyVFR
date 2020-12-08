@@ -40,8 +40,8 @@ vfr_impl.gfxNode_DrawPoints.argtypes = [
     C.c_int, C.c_int]
 
 #----------------------------------------------------------------------
-from gfxNode import *
-from utilMath import *
+from .gfxNode import *
+from .utilMath import *
 
 class Mesh2D(GfxNode):
     """
@@ -176,7 +176,6 @@ class Mesh2D(GfxNode):
                                              nmlNum, self._normals,
                                              self.meshSize.x, self.meshSize.y,
                                              self._normalMode)
-        print "ret = ", ret
         if ret == 0: return False
         self.notice()
         return True
@@ -216,7 +215,6 @@ class Mesh2D(GfxNode):
                                                   self.meshSize.y,
                                                   self._normalMode,
                                                   self._colorMode, 0)
-            if ret == 0: print 'draw failed'
 
         # end display-list definition
         self.endDispList(DLF_SOLID)

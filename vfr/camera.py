@@ -8,12 +8,12 @@ Copyright(c) RIKEN, 2008-2009, All Right Reserved.
 """
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from gfxGroup import *
-from frustum import *
-from scene import *
-from node import *
-from image import *
-from utilMath import *
+from .gfxGroup import *
+from .frustum import *
+from .scene import *
+from .node import *
+from .image import *
+from .utilMath import *
 
 
 #----------------------------------------------------------------------
@@ -822,7 +822,7 @@ class Camera(Base):
             else:
                 getPath = False
                 getId = -1
-        distbuf = zip(distbuf.values(), distbuf.keys())
+        distbuf = list(zip(distbuf.values(), distbuf.keys()))
         distbuf.sort()
 
         self._feedbacked = [0 for i in range(len(distbuf))]

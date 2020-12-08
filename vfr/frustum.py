@@ -5,7 +5,7 @@ vfr scene-graph library
 Copyright(c) RIKEN, 2008-2009, All Right Reserved.
 
 """
-from utilMath import *
+from .utilMath import *
 
 """視点タイプ"""
 (CYCLOP, LEFT_EYE, RIGHT_EYE) = range(3)

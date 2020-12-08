@@ -6,8 +6,8 @@ vfr scene-graph library
 Copyright(c) RIKEN, 2008-2009, All Right Reserved.
 
 """
-from triangles import *
-from utilMath import *
+from .triangles import *
+from .utilMath import *
 import struct
 
 #----------------------------------------------------------------------
@@ -19,13 +19,16 @@ def IsStlAscii(path):
     """
     try:
         f = open(path, 'r')
+    except:
+        return -1 # error (can not open)
+    try:
         f.read(80)
         nf = struct.unpack('i', f.read(4))[0]
         f.close()
     except:
-        return -1 # error
+        return 1 # maybe ascii
     if nf < 0 or nf > 500000000:
-        return 1 # ascii
+        return 1 # maybe ascii
     return 0 # binary
 
 #----------------------------------------------------------------------
@@ -56,9 +59,10 @@ def Read(path, fmt =None):
                     xfmt = 'slb'; break
         if not xfmt:
             if path.endswith(".stl") or path.endswith(".STL"):
-                if IsStlAscii(path) == 1:
+                is_ascii = IsStlAscii(path)
+                if is_ascii == 1:
                     xfmt = 'sla'
-                else:
+                elif is_ascii == 0:
                     xfmt = 'slb'
     if xfmt == 'obj':
         return (ReadOBJ(path), 'obj')
