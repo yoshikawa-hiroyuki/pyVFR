@@ -68,7 +68,6 @@ class OglCanvas(glcanvas.GLCanvas):
         サイズ変更のコールバック
         - evt: wxイベント
         """
-        size = self.size = self.GetClientSize()
         self.SetCurrent(self.ctx)
         if self._da:
             self._da.resized()

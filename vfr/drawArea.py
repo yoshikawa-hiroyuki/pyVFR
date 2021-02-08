@@ -14,6 +14,7 @@ from OpenGL.GLU import *
 from .gfxNode import *
 from .events import *
 from .utilMath import *
+import platform
 
 #----------------------------------------------------------------------
 import os.path
@@ -275,7 +276,19 @@ class DrawArea(object):
         self._viewport[1] = 0
         self._viewport[2] = size.x
         self._viewport[3] = size.y
-        self.notice()
+        if platform.system() == 'Darwin':
+            try:
+                import glfw
+                glfw.init()
+                win = glfw.create_window(size.x, size.y, 'check', None, None)
+                fbsz = glfw.get_framebuffer_size(win)
+                glfw.window_should_close(win)
+                glfw.terminate()
+                self._viewport[2] = fbsz[0]
+                self._viewport[3] = fbsz[1]
+            except:
+                pass
+            self.notice()
 
         self.getEvent(EVT_Size).execAction()
         return
