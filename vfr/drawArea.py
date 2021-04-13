@@ -14,7 +14,6 @@ from OpenGL.GLU import *
 from .gfxNode import *
 from .events import *
 from .utilMath import *
-import platform
 
 #----------------------------------------------------------------------
 import os.path
@@ -77,6 +76,7 @@ class DrawArea(object):
         self._viewport = [0, 0, 100, 100]
         self._rb0 = Point2()
         self._rb1 = Point2()
+        self._scaleFactor = 1
 
         # events
         self._evtTable = {
@@ -234,6 +234,8 @@ class DrawArea(object):
         """
         if not self.rb_flag: return
         sz = self.getSize()
+        sz.x *= self._scaleFactor
+        sz.y *= self._scaleFactor
         glViewport(0, 0, sz.x, sz.y)
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
@@ -274,24 +276,8 @@ class DrawArea(object):
         size = self.getSize()
         self._viewport[0] = 0
         self._viewport[1] = 0
-        self._viewport[2] = size.x
-        self._viewport[3] = size.y
-        if platform.system() == 'Darwin':
-            try:
-                import glfw
-                glfw.init()
-                win = glfw.create_window(size.x, size.y, 'check', None, None)
-                fbsz = glfw.get_framebuffer_size(win)
-                glfw.window_should_close(win)
-                glfw.terminate()
-                self._viewport[2] = fbsz[0]
-                self._viewport[3] = fbsz[1]
-            except:
-                pass
-            self.notice()
-
-        self.getEvent(EVT_Size).execAction()
-        return
+        self._viewport[2] = size.x * self._scaleFactor
+        self._viewport[3] = size.y * self._scaleFactor
     
     def setCamera(self, camera):
         """
@@ -464,7 +450,7 @@ class DrawArea(object):
         - y: ウインドウ座標値(Y座標)
         """
         if 0 <= x and x < self._viewport[2] and \
-                0 <= y and y < self._viewport[3]:
+           0 <= y and y < self._viewport[3]:
             return True
         return False
 

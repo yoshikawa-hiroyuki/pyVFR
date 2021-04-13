@@ -35,6 +35,10 @@ class OglCanvas(glcanvas.GLCanvas):
         glcanvas.GLCanvas.__init__(self, parent=parent, id=-1,
                                    pos=pos, size=size, attribList=attrLst)
         self._da = da
+        try:
+            self._scaleFactor = int(self.GetContentScaleFactor())
+        except:
+            self._scaleFactor = 1
         self.ctx = glcanvas.GLContext(self)
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
@@ -91,7 +95,8 @@ class OglCanvas(glcanvas.GLCanvas):
         """
         self.CaptureMouse()
         if self._da:
-            mp = Point2(evt.GetX(), evt.GetY())
+            mp = Point2(evt.GetX() * self._scaleFactor,
+                        evt.GetY() * self._scaleFactor)
             self._da.OnLButtonDown(mp)
 
     def OnMouseLeftUp(self, evt):
@@ -107,7 +112,8 @@ class OglCanvas(glcanvas.GLCanvas):
             nFlag = 0
             if evt.ShiftDown(): nFlag |= VFRWX_MEV_SHIFT
             if evt.ControlDown(): nFlag |= VFRWX_MEV_CNTL
-            mp = Point2(evt.GetX(), evt.GetY())
+            mp = Point2(evt.GetX() * self._scaleFactor,
+                        evt.GetY() * self._scaleFactor)
             self._da.OnLButtonUp(nFlag, mp)
 
     def OnMouseMiddleDown(self, evt):
@@ -117,7 +123,8 @@ class OglCanvas(glcanvas.GLCanvas):
         """
         self.CaptureMouse()
         if self._da:
-            mp = Point2(evt.GetX(), evt.GetY())
+            mp = Point2(evt.GetX() * self._scaleFactor,
+                        evt.GetY() * self._scaleFactor)
             self._da.OnMButtonDown(mp)
 
     def OnMouseMiddleUp(self, evt):
@@ -133,7 +140,8 @@ class OglCanvas(glcanvas.GLCanvas):
             nFlag = 0
             if evt.ShiftDown(): nFlag |= VFRWX_MEV_SHIFT
             if evt.ControlDown(): nFlag |= VFRWX_MEV_CNTL
-            mp = Point2(evt.GetX(), evt.GetY())
+            mp = Point2(evt.GetX() * self._scaleFactor,
+                        evt.GetY() * self._scaleFactor)
             self._da.OnMButtonUp(nFlag, mp)
         
     def OnMouseRightDown(self, evt):
@@ -143,7 +151,8 @@ class OglCanvas(glcanvas.GLCanvas):
         """
         self.CaptureMouse()
         if self._da:
-            mp = Point2(evt.GetX(), evt.GetY())
+            mp = Point2(evt.GetX() * self._scaleFactor,
+                        evt.GetY() * self._scaleFactor)
             self._da.OnRButtonDown(mp)
 
     def OnMouseRightUp(self, evt):
@@ -159,7 +168,8 @@ class OglCanvas(glcanvas.GLCanvas):
             nFlag = 0
             if evt.ShiftDown(): nFlag |= VFRWX_MEV_SHIFT
             if evt.ControlDown(): nFlag |= VFRWX_MEV_CNTL
-            mp = Point2(evt.GetX(), evt.GetY())
+            mp = Point2(evt.GetX() * self._scaleFactor,
+                        evt.GetY() * self._scaleFactor)
             self._da.OnRButtonUp(nFlag, mp)
 
     def OnMouseMotion(self, evt):
@@ -171,7 +181,8 @@ class OglCanvas(glcanvas.GLCanvas):
             nFlag = 0
             if evt.ShiftDown(): nFlag |= VFRWX_MEV_SHIFT
             if evt.ControlDown(): nFlag |= VFRWX_MEV_CNTL
-            mp = Point2(evt.GetX(), evt.GetY())
+            mp = Point2(evt.GetX() * self._scaleFactor,
+                        evt.GetY() * self._scaleFactor)
             self._da.OnMouseMove(nFlag, mp)
 
     def OnKeyDown(self, evt):
@@ -196,7 +207,8 @@ class OglCanvas(glcanvas.GLCanvas):
             if evt.ShiftDown(): nFlag |= VFRWX_MEV_SHIFT
             if evt.ControlDown(): nFlag |= VFRWX_MEV_CNTL
             wr = evt.GetWheelRotation()
-            mp = Point2(evt.GetX(), evt.GetY())
+            mp = Point2(evt.GetX() * self._scaleFactor,
+                        evt.GetY() * self._scaleFactor)
             self._da.OnWheel(nFlag, wr, mp)
 
 
@@ -217,6 +229,7 @@ class DrawAreaWx(DrawArea):
         self._noticeFlag = False
         self._modeState = DrawArea.WaitAny
         self._canvas = OglCanvas(parent, self, pos, size)
+        self._scaleFactor = self._canvas._scaleFactor
         self._m0 = Point2()
         self._m1 = Point2()
         return
