@@ -84,7 +84,7 @@ VFR_BOOL ObjData::alcVerts(const int nv) {
     if ( ! alcPools(nv, -1, -1, -1) )
       return VFR_FALSE;
   }
-  for ( register int i = nVerts; i < nv; i++ ) {
+  for ( int i = nVerts; i < nv; i++ ) {
     _verts[i][0] = 0.0f;
     _verts[i][1] = 0.0f;
     _verts[i][2] = 0.0f;
@@ -99,7 +99,7 @@ VFR_BOOL ObjData::alcNormals(const int nn) {
     if ( ! alcPools(-1, nn, -1, -1) )
       return VFR_FALSE;
   }
-  for ( register int i = nNormals; i < nn; i++ ) {
+  for ( int i = nNormals; i < nn; i++ ) {
     _normals[i][0] = 0.0f;
     _normals[i][1] = 0.0f;
     _normals[i][2] = 1.0f;
@@ -114,7 +114,7 @@ VFR_BOOL ObjData::alcIndices(const int n) {
     if ( ! alcPools(-1, -1, n, -1) )
       return VFR_FALSE;
   }
-  for ( register int i = nIndices; i < n; i++ )
+  for ( int i = nIndices; i < n; i++ )
     _indices[i] = -1;
   nIndices = n;
   return VFR_TRUE;
@@ -126,7 +126,7 @@ VFR_BOOL ObjData::alcColors(const int nc) {
     if ( ! alcPools(-1, -1, -1, nc) )
       return VFR_FALSE;
   }
-  for ( register int i = nColors; i < nc; i++ ) {
+  for ( int i = nColors; i < nc; i++ ) {
     _colors[i][0] = 0.9f;
     _colors[i][1] = 0.9f;
     _colors[i][2] = 0.9f;
@@ -186,7 +186,7 @@ void ObjData::generateBbox() {
     _bbox[1][0] = _bbox[1][1] = _bbox[1][2] = 1e-6f;
     return;
   }
-  register int i;
+  int i;
   memcpy(_bbox[0], _verts[0], sizeof(vector3));
   memcpy(_bbox[1], _verts[0], sizeof(vector3));
   for ( i = 1; i < nVerts; i++ ) {

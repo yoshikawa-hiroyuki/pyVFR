@@ -36,7 +36,7 @@ VFR_API int gfxNode_DrawPoints(int nv, float* vtx,
   if ( nv < 1 || ! vtx ) return 0;
   if ( nc > 0 && ! color ) return 0;
 
-  register int i;
+  int i;
   if ( fbk ) {
     for ( i = 0; i < nv; i++ ) {
       glPassThrough((GLfloat)i);
@@ -78,7 +78,7 @@ VFR_API int gfxNode_DrawLines(int nv, float* vtx,
   if ( nv < 2 || ! vtx ) return 0;
   if ( nc > 0 && ! color ) return 0;
 
-  register int i, v, c, e, nEdge = nv / 2;
+  int i, v, c, e, nEdge = nv / 2;
   if ( fbk ) {
     v = 0;
     for ( e = 0; e < nEdge; e++ ) {
@@ -120,7 +120,7 @@ VFR_API int gfxNode_DrawLineStrip(int nv, float* vtx,
   if ( nv < 2 || ! vtx ) return 0;
   if ( nc > 0 && ! color ) return 0;
 
-  register int i;
+  int i;
   if ( fbk ) {
     for ( i = 0; i < nv -1; i++ ) {
       glPassThrough((GLfloat)i);

@@ -71,7 +71,7 @@ inline std::istream&
 operator >>(std::istream& is, I3& v) {
   is >> v.idx[0];
   if ( is.get() == '/' ) {
-    register int pc = is.peek();
+    int pc = is.peek();
     if ( pc == '/' ) { // case of '//'
       is.get();
       if ( isdigit(is.peek()) )
@@ -92,7 +92,7 @@ operator >>(std::istream& is, I3& v) {
 // Wavefront OBJ loader
 VFR_API VFR_BOOL ObjData_LoadOBJ(void* p, const char* cpath) {
   using namespace std;
-  register int i, j;
+  int i, j;
   string buff;
   deque<V3> m_vl;
   deque<V3> m_nl;
@@ -203,7 +203,7 @@ VFR_API VFR_BOOL ObjData_LoadOBJ(void* p, const char* cpath) {
       }
       else { // over 3 vertices, do tesselation
         Vector3F* pvtx = new Vector3F[idxLst.size()];
-        register int idx;
+        int idx;
         for ( idx = 0; idx < idxLst.size(); idx++ )
           pvtx[idx] = m_vl[idxLst[idx].idx[0]].xyz;
         utilTessel tessel;
@@ -267,7 +267,7 @@ VFR_API VFR_BOOL ObjData_LoadOBJ(void* p, const char* cpath) {
   } // End of while(1)
 
   //// SET ObjData ////
-  register bool nlExist = ( m_nl.size() > 0 );
+  bool nlExist = ( m_nl.size() > 0 );
   pnode->alcVerts(m_vlIdx.size() * 3);
   if ( nlExist )
     pnode->alcNormals(m_nlIdx.size() * 3);
@@ -311,7 +311,7 @@ VFR_API VFR_BOOL ObjData_LoadSLA(void* p, const char* path) {
   }
 
   //// READ INFILE ////
-  register int vcount = 0;
+  int vcount = 0;
   Facet face;
 
   while ( ! sf.eof() ) {
@@ -368,7 +368,7 @@ VFR_API VFR_BOOL ObjData_LoadSLA(void* p, const char* path) {
   vector3* pv = pnode->_verts;
   vector3* pn = pnode->_normals;
 
-  register int i, j;
+  int i, j;
   for ( i = 0; i < fl.size(); i++ ) {
     j = i*3;
     memcpy(pv[j  ], fl[i].p[0], sizeof(vector3));
@@ -387,7 +387,7 @@ VFR_API VFR_BOOL ObjData_LoadSLB(void* p, const char* path) {
   using namespace std;
   deque<Facet> fl;
   int nFacet;
-  register int i, j;
+  int i, j;
   Facet face;
   union {
     char cb[50];
@@ -399,7 +399,7 @@ VFR_API VFR_BOOL ObjData_LoadSLB(void* p, const char* path) {
   if ( ! pnode ) return VFR_FALSE;
 
   // endian conversion
-  register bool eCvt = false;
+  bool eCvt = false;
 
   // open file
   FILE* fp = fopen(path, "rb");

@@ -18,7 +18,7 @@ VFR_API int gfxTriangles_DrawTrias(int nv, float* vtx,
   if ( nn > 0 && ! normal ) return 0;
   if ( nc > 0 && ! color ) return 0;
 
-  register int i, v, n, c, f, nFace = nv / 3;
+  int i, v, n, c, f, nFace = nv / 3;
   if ( fbk ) {
     v = 0;
     for ( f = 0; f < nFace; f++ ) {
@@ -103,7 +103,7 @@ private:
 
 VFR_BOOL TriaSmoother::SmoothNorm(int nV, vector3* vtx, int nN, vector3* normal)
 {
-  register size_t i;
+  size_t i;
   if ( ! hTbl ) return VFR_FALSE;
   memset(hTbl, 0, sizeof(HASH_ENTRY*)*TS_HASH_TABLE_SIZE);
 
@@ -135,7 +135,7 @@ VFR_BOOL TriaSmoother::SmoothNorm(int nV, vector3* vtx, int nN, vector3* normal)
   for ( i = 0; i < TS_HASH_TABLE_SIZE; i++ ) {
     while ( hTbl[i] ) {
       HASH_ENTRY *p, *nequal = NULL, *equal = hTbl[i];
-      register int j=0;
+      int j=0;
       CES::Vec3<float> nn, vv;
       float cs;
 
@@ -210,7 +210,7 @@ VFR_API VFR_BOOL gfxTriangles_CalcNormals(int nv, float* vtx,
   if ( nv < vtxNum || vtxNum < 1 ) return VFR_FALSE;
   if ( nn < nmlNum ) return VFR_FALSE;
   
-  register int n;
+  int n;
   CES::Vec3<float> v1, v2, nvec;
   for ( n = 0; n < faceNum; n++ ) {
     v1[0] = vtx[(n*3+1)*3  ] - vtx[(n*3  )*3  ];

@@ -22,7 +22,7 @@ VFR_API int gfxVectors_DrawVectors(int nv, float* vtx,
   if ( nn > 0 && ! nml ) return 0;
   if ( nc > 0 && ! color ) return 0;
 
-  register int i;
+  int i;
   for ( i = 0; i < nv; i++ ) {
     if ( i >= nn ) break;
     if ( i < nc )

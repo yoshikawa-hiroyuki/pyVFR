@@ -17,7 +17,7 @@ VFR_API int gfxMesh2D_DrawMeshFace(int nv, float* vtx,
   if ( nv < 1 || ! vtx ) return 0;
   if ( m * n < 1 || m * n > nv ) return 0;
 
-  register int i, j, index, findex = 0;
+  int i, j, index, findex = 0;
   if ( fbk ) {
     for ( j = 0; j < n -1; j++ ) {
       for ( i = 0; i < m -1; i++ ) {
@@ -92,7 +92,7 @@ VFR_API int gfxMesh2D_DrawMeshEdge(int nv, float* vtx,
 {
   if ( nv < 1 || ! vtx ) return 0;
   if ( m * n < 1 || m * n > nv ) return 0;
-  register int i, j, index, findex;
+  int i, j, index, findex;
 
   if ( fbk ) {
     findex = 0;
@@ -183,7 +183,7 @@ VFR_API int gfxMesh2D_CalcNormals(int nv, float* vtx,
   if ( ! faceNum ) return 0;
 
   CES::Vec3<double> v1, v2, nvw;
-  register int i, j, idx1, idx2, idx0;
+  int i, j, idx1, idx2, idx0;
 
   for ( j = 0; j < n-1; j++ ) {
     for ( i = 0; i < m-1; i++ ) {

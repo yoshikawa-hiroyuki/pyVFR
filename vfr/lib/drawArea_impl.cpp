@@ -21,7 +21,7 @@ VFR_API int drawArea_DragRotMatrix(float* M,
   if ( l < 1 ) return 0;
   const GLint vp[] = {VP[0], VP[1], VP[2], VP[3]};
   GLdouble PM[16], MM[16];
-  register int i;
+  int i;
   for ( i = 0; i < 16; i++ ) PM[i] = (GLdouble)xPM[i];
   for ( i = 0; i < 16; i++ ) MM[i] = (GLdouble)xMM[i];
 
@@ -98,7 +98,7 @@ VFR_API int drawArea_DragTransMatrix(float* M,
   if ( l < 1 ) return 0;
   const GLint vp[] = {VP[0], VP[1], VP[2], VP[3]};
   GLdouble PM[16], MM[16];
-  register int i;
+  int i;
   for ( i = 0; i < 16; i++ ) PM[i] = (GLdouble)xPM[i];
   for ( i = 0; i < 16; i++ ) MM[i] = (GLdouble)xMM[i];
 
@@ -153,7 +153,7 @@ VFR_API int drawArea_DragScaleMatrix(float* M,
   CES::Mat4<float> DM(M);
   DM.Scale(CES::Vec3<float>(s, s, s));
   
-  register int i;
+  int i;
   for ( i = 0; i < 16; i++ )
     M[i] = DM.m_v[i];
   return 1;

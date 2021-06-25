@@ -38,12 +38,12 @@ VFR_API double gfxLetters_GetTextWidth(const int font,
     return 0.0;
   }
   if ( ! textBuf ) return 0.0;
-  register float tw = 0.f;
-  register float maxw = 0.f;
-  register int textLen = strlen(textBuf);
-  register int i, j;
+  float tw = 0.f;
+  float maxw = 0.f;
+  int textLen = strlen(textBuf);
+  int i, j;
   for ( i = 0; i < textLen; i++ ) {
-    register GLint mode;
+    GLint mode;
     if ( textBuf[i] == '\n' ) {
       if ( tw > maxw ) maxw = tw;
       tw = 0.f;
@@ -93,10 +93,10 @@ VFR_API double gfxLetters_DrawLetter(const int font,
   default:
     return 0.0;
   }
-  register int i = c - 0x20;
-  register GLint mode;
-  register GLfloat retv = 0.f;
-  register int j;
+  int i = c - 0x20;
+  GLint mode;
+  GLfloat retv = 0.f;
+  int j;
   for ( j = 1; mode = fontData[i][j]; j += 3 ) {
     if ( mode == FONT_BEGIN ) {
       glBegin(gltype);
