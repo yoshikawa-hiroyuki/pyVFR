@@ -175,10 +175,10 @@ class EndRBoxAction(Action):
         if _SelectedNode:
             _SelectedNode.setBboxShowMode(False)
             _SelectedNode = None
-        #print 'selection test: #of hits = ', len(r)
+        #print('selection test: #of hits = ', len(r))
         if len(r) > 0:
             co = da.getNodeById(r[0])
-            #print '  hits:', r[0:]
+            #print('  hits:', r[0:])
             if co:
                 rr = da.sweepFeedback(cp0.x, cp0.y, w, h, r[0])
                 co.setBboxShowMode(True)
