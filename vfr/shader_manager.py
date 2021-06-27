@@ -16,6 +16,8 @@ class ShaderManager(object):
         self.shader_sources = None
         self.shader_ids = {}
 
+        return
+
     def setup(self, shader_sources):
         """Setup shaders."""
 
@@ -42,7 +44,8 @@ class ShaderManager(object):
         if GL.glGetProgramiv(self.program_id, GL.GL_LINK_STATUS) != GL.GL_TRUE:
             raise RuntimeError(GL.glGetProgramInfoLog(self.program_id).decode())
 
-        GL.glUseProgram(self.program_id)
+        #GL.glUseProgram(self.program_id)
+        return
 
     def cleanup(self):
         """Clean up shaders and program."""
@@ -56,3 +59,5 @@ class ShaderManager(object):
             GL.glDeleteShader(shader)
         GL.glDeleteProgram(self.program_id)
 
+        return
+    

@@ -176,6 +176,8 @@ class GfxNode(Node, Obj):
         self._auxPointColor = [1.0, 1.0, 1.0, 1.0]
         self._useAuxPointColor = False
 
+        self._shader = None
+
         self._showBbox = False
         self._pickable = PT_NONE
         self._bboxColor = [0.6, 0.6, 0.6, 1.0]
@@ -578,6 +580,10 @@ class GfxNode(Node, Obj):
         # apply material
         self.applyMaterial()
 
+        # apply shader
+        if self._shader != None:
+            GL.glUseProgram(self._shader.program_id)
+        
         # rendering
         if self._renderMode & (RT_SMOOTH | RT_NOLIGHT | RT_FLAT) :
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
@@ -606,6 +612,10 @@ class GfxNode(Node, Obj):
                 glColor4fv(self._colors[0])
             self.renderPoint()
             glEnable(GL_LIGHTING)
+
+        # unapply shader
+        if self._shader != None:
+            GL.glUseProgram(0)
 
         # un-apply material
         self.unApplyMaterial()
