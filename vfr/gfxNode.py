@@ -582,7 +582,7 @@ class GfxNode(Node, Obj):
 
         # apply shader
         if self._shader != None:
-            GL.glUseProgram(self._shader.program_id)
+            glUseProgram(self._shader.program_id)
         
         # rendering
         if self._renderMode & (RT_SMOOTH | RT_NOLIGHT | RT_FLAT) :
@@ -615,7 +615,7 @@ class GfxNode(Node, Obj):
 
         # unapply shader
         if self._shader != None:
-            GL.glUseProgram(0)
+            glUseProgram(0)
 
         # un-apply material
         self.unApplyMaterial()
