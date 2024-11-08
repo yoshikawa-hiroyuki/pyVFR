@@ -35,7 +35,7 @@ class Vec3(object):
     __slots__=['m_v']
     
     def __init__(self, org =None):
-        if org and isinstance(org, Vec3):
+        if not org is None and isinstance(org, Vec3):
             self.m_v = N.array([x for x in org.m_v], _dt)
         else:
             try:
@@ -113,7 +113,7 @@ class Mat4(object):
     __slots__=['m_v']
 
     def __init__(self, org =None):
-        if org and isinstance(org, Mat4):
+        if not org is None and isinstance(org, Mat4):
             self.m_v = N.array([x for x in org.m_v], _dt)
         else:
             try:
@@ -331,7 +331,7 @@ class Quat4(object):
     __slots__=['m_i', 'm_w']
 
     def __init__(self, org =None):
-        if org and isinstance(org, Quat4):
+        if not org is None and isinstance(org, Quat4):
             self.m_i = Vec3(org=org.m_i)
             self.m_w = org.m_w
         else:

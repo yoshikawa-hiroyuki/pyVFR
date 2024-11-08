@@ -52,8 +52,8 @@ def CLAMP(x, y, z):
 
         
 #----------------------------------------------------------------------
-import ctypes as C
 import copy
+import numpy as N
 
 """カラーエントリー最大値"""
 LUT_MAX_ENTRY = 256
@@ -73,7 +73,7 @@ class Lut(object):
         self.numEntry = LUT_MAX_ENTRY
         self.minVal = 0.0
         self.maxVal = 1.0
-        self.entry = (C.c_float*(LUT_MAX_ENTRY * 4))()
+        self.entry = N.zeros((LUT_MAX_ENTRY, 4), dtype=float)
         self.isStdLut = False
         self.setDefault()
 
@@ -84,7 +84,7 @@ class Lut(object):
         """
         if numEntry < 0: return False
         self.numEntry = numEntry
-        self.entry = (C.c_float*(numEntry * 4))()
+        self.entry = N.zeros((numEntry, 4), dtype=float)
         self.isStdLut = False
         return True
 
@@ -93,10 +93,10 @@ class Lut(object):
         代入
         """
         if not self.alcEntry(lut.numEntry):
-            raise AttributeError, 'alloc failed.'
+            raise AttributeError('alloc failed.')
         self.minVal = lut.minVal
         self.maxVal = lut.maxVal
-        self.entry[:] = lut.entry[:]
+        self.entry = lut.entry.copy()
         self.isStdLut = lut.isStdLut
         
     def setDefault(self):
@@ -107,10 +107,10 @@ class Lut(object):
         y = 1.0 / (self.numEntry-1)
         for i in range(self.numEntry):
             rgb = hsv2rgb([0.666667 - i*x, 1.0, 1.0])
-            self.entry[i*4  ] = rgb[0]
-            self.entry[i*4+1] = rgb[1]
-            self.entry[i*4+2] = rgb[2]
-            self.entry[i*4+3] = i*y
+            self.entry[i, 0] = rgb[0]
+            self.entry[i, 1] = rgb[1]
+            self.entry[i, 2] = rgb[2]
+            self.entry[i, 3] = i*y
         self.isStdLut = True
         return
 
@@ -121,16 +121,15 @@ class Lut(object):
         """
         if self.numEntry < 1: return False
         if self.numEntry == LUT_MAX_ENTRY: return True
-        import copy
         org = copy.deepcopy(self)
         self.numEntry = LUT_MAX_ENTRY
 
         for i in range(LUT_MAX_ENTRY):
             oi = self.numEntry * i / LUT_MAX_ENTRY
-            self.entry[i*4  ] = org.entry[oi*4]
-            self.entry[i*4+1] = org.entry[oi*4+1]
-            self.entry[i*4+2] = org.entry[oi*4+2]
-            self.entry[i*4+3] = org.entry[oi*4+3]
+            self.entry[i, 0] = org.entry[oi, 0]
+            self.entry[i, 1] = org.entry[oi, 1]
+            self.entry[i, 2] = org.entry[oi, 2]
+            self.entry[i, 3] = org.entry[oi, 3]
         return True
 
     def getValIdx(self, val):
@@ -146,6 +145,9 @@ class Lut(object):
         return int((self.numEntry-1)*(val-self.minVal)
                    / (self.maxVal-self.minVal))
 
+    def getList(self):
+        return self.entry.reshape((self.numEntry*4)).tolist()
+
     def exportStream(self, ofd, ts=0):
         """ 文字列ストリームへの出力.
           戻り値 -> boolean.
@@ -159,10 +161,10 @@ class Lut(object):
         ofd.write(fstr)
         for i in range(self.numEntry):
             fstr = tsStr \
-                   + str(CLAMP(0.0, 1.0, self.entry[i*4])) + ' ' \
-                   + str(CLAMP(0.0, 1.0, self.entry[i*4+1])) + ' ' \
-                   + str(CLAMP(0.0, 1.0, self.entry[i*4+2])) + ' ' \
-                   + str(CLAMP(0.0, 1.0, self.entry[i*4+3])) + '\n'
+                   + str(CLAMP(0.0, 1.0, self.entry[i, 0])) + ' ' \
+                   + str(CLAMP(0.0, 1.0, self.entry[i, 1])) + ' ' \
+                   + str(CLAMP(0.0, 1.0, self.entry[i, 2])) + ' ' \
+                   + str(CLAMP(0.0, 1.0, self.entry[i, 3])) + '\n'
             ofd.write(fstr)
         return True
 
@@ -192,10 +194,10 @@ class Lut(object):
             b = float(data[2])
             a = 1.0
             if (len(data) > 3): a = float(data[3])
-            self.entry[numLines*4+0] = CLAMP(0.0, 1.0, r)
-            self.entry[numLines*4+1] = CLAMP(0.0, 1.0, g)
-            self.entry[numLines*4+2] = CLAMP(0.0, 1.0, b)
-            self.entry[numLines*4+3] = CLAMP(0.0, 1.0, a)
+            self.entry[numLines, 0] = CLAMP(0.0, 1.0, r)
+            self.entry[numLines, 1] = CLAMP(0.0, 1.0, g)
+            self.entry[numLines, 2] = CLAMP(0.0, 1.0, b)
+            self.entry[numLines, 3] = CLAMP(0.0, 1.0, a)
             numLines += 1
             if numLines == LUT_MAX_ENTRY:
                 break
