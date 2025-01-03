@@ -25,6 +25,5 @@ __all__ = [
     "triangles",
     "utilMath",
     "vectors",
-    "xform",
     ]
 

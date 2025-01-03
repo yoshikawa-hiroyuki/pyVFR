@@ -6,7 +6,10 @@ vfr scene-graph library
 Copyright(c) RIKEN, 2008-2009, All Right Reserved.
 
 """
-from .utilMath import *
+import sys, os, math, string
+if not ".." in sys.path:
+    sys.path = sys.path + [".."]
+from vfr.utilMath import *
 
 
 class XForm(object):
