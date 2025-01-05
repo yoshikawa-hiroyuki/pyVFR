@@ -20,7 +20,7 @@ CFLAGS= /D_WIN32 /DWIN32 /W3 /GR /I$(INC_DIR) \
 
 LDFLAGS=/OUT:$(TARGET).dll \
   /DLL /SUBSYSTEM:WINDOWS /MANIFEST \
-  /IMPLIB:$(TARGET).lib /MACHINE:X86
+  /IMPLIB:$(TARGET).lib
 
 LDLIBS=  OpenGL32.lib GLU32.lib \
   kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib \
