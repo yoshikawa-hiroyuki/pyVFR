@@ -38,6 +38,9 @@ class VsnApp(wx.App):
         self._viewFrame.setApp(self)
         self.SetTopWindow(self._viewFrame)
 
+        # Arena
+        self._arena = self._viewFrame.gfxView.root
+
         return True
 
 

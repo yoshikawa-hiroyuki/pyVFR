@@ -17,6 +17,7 @@ __all__ = [
     "letters",
     "light",
     "lines",
+    "lut",
     "mesh",
     "node",
     "obj",

@@ -58,9 +58,10 @@ class Arena(gfxGroup.GfxGroup):
 
         self.objRoot = gfxGroup.GfxGroup('OBJ_ROOT')
         self.volRoot = gfxGroup.GfxGroup('VOL_ROOT')
-
-        self.selectedObj = None
+        self.addChild(self.objRoot)
+        self.addChild(self.volRoot)
         
+        self.selectedObj = None
         return
 
     def __del__ (self):
@@ -110,7 +111,8 @@ class Arena(gfxGroup.GfxGroup):
           obj - Object. 追加するobject.
           戻り値 -> bool. 失敗したらFalseを返す.
         """
-        if not self.objRoot.addChild(obj): return False
+        if not self.objRoot.addChild(obj):
+            return False
         return True
 
     def delObject(self, obj):
@@ -120,7 +122,8 @@ class Arena(gfxGroup.GfxGroup):
         """
         if obj == self.selectedObj:
             self.selectedObj = None
-        if not self.objRoot.remChild(obj): return False
+        if not self.objRoot.remChild(obj):
+            return False
         return True
 
     def getObject(self, n):
@@ -245,7 +248,8 @@ class Arena(gfxGroup.GfxGroup):
         """
         override gfxGroup.GfxGroup.render_()
         """
-        if self._renderMode == gfxNode.RT_NONE: return
+        if self._renderMode == gfxNode.RT_NONE:
+            return
         gfxGroup.GfxGroup.render_(self, transpMode)
 
         # call volume renderers
