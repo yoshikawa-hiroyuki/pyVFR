@@ -45,9 +45,10 @@ class Lines(GfxNode):
     頂点数が奇数個の場合、最後の1つは無視されます．
     """
 
-    def __init__(self, name =Node._NONAME, suicide =False):
-        GfxNode.__init__(self, name, suicide)
+    def __init__(self, **args):
+        GfxNode.__init__(self, **args)
         self._renderMode = RT_WIRE
+        return
 
     def renderFeedBack(self, tgt):
         """
@@ -131,10 +132,14 @@ class LineStrip(GfxNode):
       loopMode: ループモード
     """
 
-    def __init__(self, name =Node._NONAME, suicide =False, loop =False):
-        GfxNode.__init__(self, name, suicide)
+    def __init__(self, **args):
+        """
+        args: loop =False
+        """
+        GfxNode.__init__(self, **args)
         self._renderMode = RT_WIRE
-        self.loopMode = loop
+        self.loopMode = False if not 'loop' in args else args['loop']
+        return
 
     def renderFeedBack(self, tgt):
         """

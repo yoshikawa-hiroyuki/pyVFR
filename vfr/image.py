@@ -26,14 +26,19 @@ class PixelImage(GfxNode):
       fitSize: 表示の際のスケーリングサイズ([0,0]の場合はスケーリングしない)
     """
 
-    def __init__(self, name =Node._NONAME, suicide =False):
-        GfxNode.__init__(self, name, suicide)
+    def __init__(self, **args):
+        """
+        args: invY =True, fitSize =[0, 0]
+        """
+        GfxNode.__init__(self, **args)
         self.imgData = None
         self.imgSize = [0, 0]
         self.imgDepth = 0
-        self.invY = True
+        self.invY = True if not 'invY' in args else args['invY']
         self.fitSize = [0, 0]
+        if 'fitSize' in args: self.fitSize[:] = args['fitSize'][:2]
         self._colors[0] = (1.0, 1.0, 1.0, 1.0)
+        return
 
     def isDrawable(self):
         """
@@ -89,7 +94,6 @@ class PixelImage(GfxNode):
 
         # end display-list definition
         self.endDispList(DLF_SOLID)
-
         return
 
     def loadImage(self, path):

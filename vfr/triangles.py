@@ -41,11 +41,11 @@ class Triangles(GfxNode):
     Trianglesクラスは，三角形集合を表示するシーングラフノードクラスです．
     与えられた頂点集合を3個づつに区切り，三角形をOpenGLで描画します．
     頂点数が3の倍数でない場合，最後の1ないし2個の頂点は無視されます．
-    ただしレンダリングモードがRT_POINTの場合，頂点数が3の倍数でなくとも
+    ただし、レンダリングモードがRT_POINTの場合，頂点数が3の倍数でなくとも
     登録されている全ての頂点をポイントレンダリングします．
     """
-    def __init__(self, name =Node._NONAME, suicide =False):
-        GfxNode.__init__(self, name, suicide)
+    def __init__(self, **args):
+        GfxNode.__init__(self, **args)
 
     def renderFeedBack(self, tgt):
         """

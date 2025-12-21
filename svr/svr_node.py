@@ -21,8 +21,8 @@ class SvrNode(gfxNode.GfxNode):
     _SVR_NUMSLICES_INIT = 256
     _SVR_NUMSLICES_OMIT = 40
     
-    def __init__(self, name=node.Node._NONAME, suicide=False):
-        gfxNode.GfxNode.__init__(self, name, suicide)
+    def __init__(self, **args):
+        gfxNode.GfxNode.__init__(self, **args)
 
         self.p_render = None
 

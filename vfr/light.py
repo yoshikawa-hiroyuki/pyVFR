@@ -36,8 +36,8 @@ class Light(GfxNode):
     __directionSpot = [0.0, 0.0, -1.0]
     __cutoffPoint = 180.0
     
-    def __init__(self, order, name =Node._NONAME):
-        GfxNode.__init__(self, name)
+    def __init__(self, order, **args):
+        GfxNode.__init__(self, **args)
         self.makeLight(order)
         return
 

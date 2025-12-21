@@ -49,15 +49,13 @@ def MatrixBbox(bbox, M):
 class Arena(gfxGroup.GfxGroup):
     """ Arenaクラス.
     """
-    def __init__(self, name=gfxNode.Node._NONAME, suicide=False):
+    def __init__(self, **args):
         """ 初期設定.
-          name - String. ノード名.
-          suicide - bool. True:suicideが有効, False:無効.
         """
-        gfxGroup.GfxGroup.__init__(self, name, suicide)
+        gfxGroup.GfxGroup.__init__(self, **args)
 
-        self.objRoot = gfxGroup.GfxGroup('OBJ_ROOT')
-        self.volRoot = gfxGroup.GfxGroup('VOL_ROOT')
+        self.objRoot = gfxGroup.GfxGroup(name='OBJ_ROOT')
+        self.volRoot = gfxGroup.GfxGroup(name='VOL_ROOT')
         self.addChild(self.objRoot)
         self.addChild(self.volRoot)
         

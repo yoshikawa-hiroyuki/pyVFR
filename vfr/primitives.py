@@ -20,15 +20,18 @@ class Cube(GfxNode):
       height: 高さ
       depth: 奥行き
     """
-    def __init__(self, name =Node._NONAME, suicide =False,
-                 width=1.0, height=1.0, depth=1.0):
-        GfxNode.__init__(self, name, suicide)
-        self.width = width
-        self.height = height
-        self.depth = depth
+    def __init__(self, **args):
+        """
+        args: width =1.0, height =1.0, depth =1.0
+        """
+        GfxNode.__init__(self, **args)
+        self.width = 1.0 if not 'width' in args else args['width']
+        self.height = 1.0 if not 'height' in args else args['height']
+        self.depth = 1.0 if not 'depth' in args else args['depth']
         self.alcData(nV=1)
         self._verts[0][:] = (0, 0, 0)
         self.generateBbox()
+        return
 
     def generateBbox(self):
         """
@@ -160,11 +163,13 @@ class Ball(GfxNode):
     __sindex = ((0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 1, 4),
                 (5, 1, 2), (5, 2, 3), (5, 3, 4), (5, 4, 1))
 
-    def __init__(self, name =Node._NONAME, suicide =False,
-                 radius=0.5, subdiv=2):
-        GfxNode.__init__(self, name, suicide)
-        self.radius = radius
-        self.subdiv = subdiv
+    def __init__(self, **args):
+        """
+        args: radius =0.5, subdiv =2
+        """
+        GfxNode.__init__(self, **args)
+        self.radius = 0.5 if not 'radius' in args else args['radius']
+        self.subdiv = 2 if not 'subdiv' in args else args['subdiv']
         self.alcData(nV=1)
         self._verts[0][:] = (0, 0, 0)
         self.generateBbox()
@@ -279,16 +284,20 @@ class Cone(GfxNode):
     __sindex = ((0, 2, 1), (0, 3, 2), (0, 4, 3), (0, 1, 4),
                 (5, 1, 2), (5, 2, 3), (5, 3, 4), (5, 4, 1))
     
-    def __init__(self, name =Node._NONAME, suicide =False,
-                 radius=0.5, height=1.0, subdiv=2, showBottom=True):
-        GfxNode.__init__(self, name, suicide)
-        self.radius = radius
-        self.height = height
-        self.subdiv = subdiv
-        self.showBottom = showBottom
+    def __init__(self, **args):
+        """
+        args: radius =0.5, height =1.0, subdiv =2, showBottom =True
+        """
+        GfxNode.__init__(self, **args)
+        self.radius = 0.5 if not 'radius' in args else args['radius']
+        self.height = 1.0 if not 'height' in args else args['height']
+        self.subdiv = 2 if not 'subdiv' in args else args['subdiv']
+        self.showBottom = True if not 'showBottom' in args \
+            else args['showBottom']
         self.alcData(nV=1)
         self._verts[0][:] = (0, 0, 0)
         self.generateBbox()
+        return
 
     def generateBbox(self):
         """
@@ -414,18 +423,22 @@ class Cylinder(GfxNode):
     """基本側面インデックス"""
     __qindex = ((1, 2, 6, 5), (2, 3, 7, 6), (3, 4, 8, 7), (4, 1, 5, 8))
 
-    def __init__(self, name =Node._NONAME, suicide =False,
-                 radius=0.5, height=1.0, subdiv=2,
-                 showBottom=True, showTop=True):
-        GfxNode.__init__(self, name, suicide)
-        self.radius = radius
-        self.height = height
-        self.subdiv = subdiv
-        self.showBottom = showBottom
-        self.showTop = showTop
+    def __init__(self, **args):
+        """
+        args: radius= 0.5, height= 1.0, subdiv= 2,
+              showBottom =True, showTop =True
+        """
+        GfxNode.__init__(self, **args)
+        self.radius = 0.5 if not 'radius' in args else args['radius']
+        self.height = 1.0 if not 'height' in args else args['height']
+        self.subdiv = 2 if not 'subdiv' in args else args['subdiv']
+        self.showBottom = True if not 'showBottom' in args \
+            else args['showBottom']
+        self.showTop = True if not 'showTop' in args else args['showTop']
         self.alcData(nV=1)
         self._verts[0][:] = (0, 0, 0)
         self.generateBbox()
+        return
 
     def generateBbox(self):
         """

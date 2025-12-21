@@ -16,9 +16,9 @@ class GfxGroup(Group, GfxNode):
     GfxGroupクラスは、複数の子供のシーングラフノードを持つ事ができるノードで、
     シーングラフのブランチを構成するものです.
     """
-    def __init__(self, name =Node._NONAME, suicide =False):
-        Group.__init__(self, name, suicide)
-        GfxNode.__init__(self, name, suicide)
+    def __init__(self, **args):
+        Group.__init__(self, **args)
+        GfxNode.__init__(self, **args)
         self._dlNodeType = False
         return
 

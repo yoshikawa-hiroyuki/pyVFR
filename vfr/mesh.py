@@ -53,12 +53,17 @@ class Mesh2D(GfxNode):
     座標が指定できます．
       meshSize: 格子サイズ(Point2クラス)
     """
-    def __init__(self, name =Node._NONAME, suicide =False,
-                 m =0, n =0):
-        GfxNode.__init__(self, name, suicide)
+    def __init__(self, **args):
+        """
+        args: m =0, n =0
+        """
+        GfxNode.__init__(self, **args)
+        m = 0 if not 'm' in args else args['m']
+        n = 0 if not 'n' in args else args['n']
         self.meshSize = Point2()
         self.setMeshSize(m, n);
         self.alcData(nN = 1)
+        return
 
     def setMeshSize(self, m, n):
         """

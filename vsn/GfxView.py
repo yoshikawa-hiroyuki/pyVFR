@@ -52,23 +52,23 @@ class GfxView(object):
         self.scene = scene.Scene(suicide=True)
         self.camera.setScene(self.scene)
 
-        self._T = gfxGroup.GfxGroup('T', suicide=True)
+        self._T = gfxGroup.GfxGroup(name='T', suicide=True)
         self.scene.addChild(self._T)
-        self._C = gfxGroup.GfxGroup('C', suicide=True)
+        self._C = gfxGroup.GfxGroup(name='C', suicide=True)
         self._T.addChild(self._C)
-        self._R = gfxGroup.GfxGroup('R', suicide=True)
+        self._R = gfxGroup.GfxGroup(name='R', suicide=True)
         self._C.addChild(self._R)
-        self._S = gfxGroup.GfxGroup('S', suicide=True)
+        self._S = gfxGroup.GfxGroup(name='S', suicide=True)
         self._R.addChild(self._S)
-        self._IC = gfxGroup.GfxGroup('IC', suicide=True)
+        self._IC = gfxGroup.GfxGroup(name='IC', suicide=True)
         self._S.addChild(self._IC)
-        self.root = Arena.Arena('ROOT', suicide=True)
+        self.root = Arena.Arena(name='ROOT', suicide=True)
         self._IC.addChild(self.root)
 
         self.faxis = FrontAxis(suicide=True)
         self.camera.addToFront(self.faxis)
 
-        self.centPos = gfxNode.GfxNode('CenterPos', suicide=True)
+        self.centPos = gfxNode.GfxNode(name='CenterPos', suicide=True)
         self.centPos.alcData(nV=1, nC=1)
         self.centPos.setColor(0, (1.0, 1.0, 0.0))
         self.centPos.setRenderMode(gfxNode.RT_POINT)
@@ -91,7 +91,11 @@ class GfxView(object):
         del self.scene
         del self._T, self._C, self._R, self._S, self._IC, self.root
         del self.centPos
+        return
 
+    def getArena(self):
+        return self.root
+        
     @staticmethod
     def GetTime():
         """ 時刻の取得.

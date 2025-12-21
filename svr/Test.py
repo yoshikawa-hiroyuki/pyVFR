@@ -26,7 +26,7 @@ cam._frustum._dist = 15.0
 cam._antiAlias = True
 da.setCamera(cam)
 
-scn = scene.Scene('SCENE')
+scn = scene.Scene(name='SCENE')
 cam.setScene(scn)
 
 li0 = scn.getLight(0)

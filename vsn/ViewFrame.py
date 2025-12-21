@@ -12,7 +12,10 @@ if not ".." in sys.path:
 from GfxView import GfxView
 from GfxActs import *
 import ViewPoint
+import ObjSelectDlg
+import ObjPropDlg
 
+# Menu Ids
 (ViewFrameMenu_File_Quit,
  
  ViewFrameMenu_View_Normalize,
@@ -22,8 +25,10 @@ import ViewPoint
  ViewFrameMenu_View_CenterShow,
  ViewFrameMenu_View_FrAxisShow,
  ViewFrameMenu_View_SetBgColor,
+
+ ViewFrameMenu_Obj_Selection,
  
- ViewFrameMenu_Help_About) = range(1100, 1100 + 9)
+ ViewFrameMenu_Help_About) = range(1100, 1100 + 10)
 
 (ViewFrameTooBar_NormView,
  ViewFrameTooBar_ProjPers,
@@ -42,11 +47,11 @@ class ViewFrame(wx.Frame):
     FRAME_DEFAULT_VPNAME = "( viewpoint0 )"
 
 
-    def __init__(self, frame, ID=-1, title='', pos=wx.DefaultPosition,
+    def __init__(self, parent, ID=-1, title='ViewFrame', pos=wx.DefaultPosition,
                  size=wx.DefaultSize, style=wx.DEFAULT_FRAME_STYLE,
                  name='frame'):
         """ 初期設定.
-          frame - wx.Window. parent.
+          parent - wx.Window. parent window.
           ID - int. id.
           title - String. 表題.
           pos - Point. position.
@@ -54,8 +59,8 @@ class ViewFrame(wx.Frame):
           style - long. style.
           name - String. name.
         """
-        wx.Frame.__init__(self, frame, ID, title, pos, size, style, name)
-        self.parent = frame
+        wx.Frame.__init__(self, parent, ID, title, pos, size, style, name)
+        self.parent = parent
 
         self.app = None
         self.gfxView = GfxView(self)
@@ -69,29 +74,44 @@ class ViewFrame(wx.Frame):
         self.setupMenuBar()
         self.setupToolBar()
 
-        # view point
+        # view point dialog
         self.viewPointLst = {}
         self.pViewPointDlg = None
 
+        # visObj properties dialog
+        self.pObjPropDlg = None
+
         return
 
-
+    
     def __del__(self):
         """ 終了処理.
         """
         del self.parent
         del self.gfxView
+        del self.pViewPointDlg
+        del self.pObjPropDlg
+        return
 
     
+    def isViewFrame(self):
+        return True
+    
+
     def setApp(self, app):
         """ App設定
           app - App.
         """
         self.app = app
+        return
 
     def getApp(self):
         return self.app
 
+
+    def getArena(self):
+        return self.gfxView.getArena()
+    
     
     def setupMenuBar(self):
         """ Menu barとmenuの作成.
@@ -127,6 +147,12 @@ class ViewFrame(wx.Frame):
                         "Background Color ...",
                         "Set Background Color of Graphics drawing area")
 
+        # 'Obj' menu
+        objMenu = wx.Menu()
+        objMenu.Append(ViewFrameMenu_Obj_Selection,
+                        "Select VisObj ...",
+                        "Select a VisObj")
+
         # 'Help' menu
         helpMenu = wx.Menu()
         helpMenu.Append(ViewFrameMenu_Help_About,
@@ -136,6 +162,7 @@ class ViewFrame(wx.Frame):
         menuBar = wx.MenuBar()
         menuBar.Append(fileMenu, "&File")
         menuBar.Append(viewMenu, "View")
+        menuBar.Append(objMenu, "Obj")
         menuBar.Append(helpMenu, "&Help")
 
         self.SetMenuBar(menuBar)
@@ -238,7 +265,8 @@ class ViewFrame(wx.Frame):
             vp = self.viewPointLst[vpname]
             return vp
         except:
-            return None
+            pass
+        return None
 
     def addViewPoint(self, vpname):
         """ view pointの追加.
@@ -260,7 +288,8 @@ class ViewFrame(wx.Frame):
             self.viewPointLst.pop(vpname)
             return True
         except:
-            return False
+            pass
+        return False
 
     def updateViewPoint(self, vpname, xanim =True):
         """ view pointの更新.
@@ -276,7 +305,8 @@ class ViewFrame(wx.Frame):
                 self.gfxView.setViewPoint(xfm)
             return True
         except:
-            return False
+            pass
+        return False
         
 
     def reset(self):
@@ -284,7 +314,14 @@ class ViewFrame(wx.Frame):
         self.viewPointLst = {}
         if self.pViewPointDlg:
             self.pViewPointDlg.Hide()
-        
+
+        # reset visObj properties dialog
+        if self.pObjPropDlg:
+            self.pObjPropDlg.Hide()
+
+        # reset bg color
+        self.setBgColor([0, 0, 0])
+
         return
 
 
@@ -294,6 +331,7 @@ class ViewFrame(wx.Frame):
         """
         self.gfxView.camera.setBgColor(color)
         self.gfxView.drawArea.chkNotice()
+        return
 
     def getBgColor(self):
         """ background colorの取得.
@@ -328,9 +366,11 @@ class ViewFrame(wx.Frame):
             self.OnMenuView_FrAxisShow(event)
         elif eid == ViewFrameMenu_View_CenterShow:
             self.OnMenuView_CenterShow(event)
-        elif ViewFrameMenu_View_SetBgColor:
+        elif eid == ViewFrameMenu_View_SetBgColor:
             self.OnMenuView_SetBgColor(event)
-        elif ViewFrameMenu_Help_About:
+        elif eid == ViewFrameMenu_Obj_Selection:
+            self.OnMenuObj_Selection(event)
+        elif eid == ViewFrameMenu_Help_About:
             self.OnMenuHelp_About(event)
         return
 
@@ -339,6 +379,7 @@ class ViewFrame(wx.Frame):
          event - wx.MenuEvent.
         """
         self.Close(True)
+        return
 
     def OnMenuView_Normalize(self, event):
         """ Fit to Selected Objectsメニューのイベント.
@@ -383,7 +424,8 @@ class ViewFrame(wx.Frame):
         if not self.pViewPointDlg:
             self.pViewPointDlg = ViewPoint.ViewPointDlg(self, self)
         self.pViewPointDlg.Show(True)
-
+        return
+    
 
     def OnUpdateMenu(self, event):
         eid = event.GetId()
@@ -393,6 +435,7 @@ class ViewFrame(wx.Frame):
             self.OnUpdateMenuView_FrAxisShow(event)
         elif eid == ViewFrameMenu_View_CenterShow:
             self.OnUpdateMenuView_CenterShow(event)
+        return
 
     def OnMenuView_Perspective(self, event):
         """ Perspectiveメニューのイベント.
@@ -410,7 +453,7 @@ class ViewFrame(wx.Frame):
             event.Check(True)
         else:
             event.Check(False)
-
+        return
 
     def OnMenuView_ShowToolBar(self, event):
         """ Show Toolbarメニューのイベント.
@@ -426,7 +469,7 @@ class ViewFrame(wx.Frame):
                 self.SetToolBar(None)
                 ptb.Destroy()
         self.Refresh()
-
+        return
 
     def OnUpdateMenuView_ShowToolBar(self, event):
         """ Show ToolbarのUPDATE UIイベント.
@@ -434,33 +477,35 @@ class ViewFrame(wx.Frame):
         """
         ptb = self.GetToolBar()
         event.Check(ptb != None)
-
+        return
 
     def OnMenuView_FrAxisShow(self, event):
         self.gfxView.setShowFrontAxis(event.IsChecked())
         """ Show Coordinate Axisメニューのイベント.
           event - wx.MenuEvent.
         """
+        return
 
     def OnUpdateMenuView_FrAxisShow(self, event):
         """ Show Coordinate AxisのUPDATE UIイベント.
           event - wx.UpdateUIEvent.
         """
         event.Check(self.gfxView.getShowFrontAxis())
-
+        return
 
     def OnMenuView_CenterShow(self, event):
         """ Show Center Crossメニューのイベント.
           event - wx.MenuEvent.
         """
         self.gfxView.setShowCenterPos(event.IsChecked())
+        return
 
     def OnUpdateMenuView_CenterShow(self, event):
         """ Show Center CrossのUPDATE UIイベント.
           event - wx.UpdateUIEvent.
         """
         event.Check(self.gfxView.getShowCenterPos())
-
+        return
 
     def OnMenuView_SetBgColor(self, event):
         """ Set Background colorメニューのイベント.
@@ -470,14 +515,42 @@ class ViewFrame(wx.Frame):
         bgc = wx.Colour(int(color[0]*255), int(color[1]*255), int(color[2]*255))
         colData = wx.ColourData()
         colData.SetColour(bgc)
-        colDlg = wx.ColourDialog(self, colData)
-        if colDlg.ShowModal() != wx.ID_OK:
+        pBgColorDlg = wx.ColourDialog(self, colData)
+        if pBgColorDlg.ShowModal() != wx.ID_OK:
             return
-        colData = colDlg.GetColourData()
+        colData = pBgColorDlg.GetColourData()
         bgc = colData.GetColour()
         color = [bgc.Red()/255.0, bgc.Green()/255.0, bgc.Blue()/255.0, 1.0]
         self.setBgColor(color)
+        return
 
+    def OnMenuObj_Selection(self, event):
+        """ Select VisObjメニューのイベント.
+          event - wx.MenuEvent.
+        """
+        if not self.app:
+            return
+
+        # show ObjSelectDlg
+        dlg = ObjSelectDlg.ObjSelectDlg(self)
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        obj = dlg.getSelectedObj()
+        if not obj:
+            if self.pObjPropDlg:
+                self.pObjPropDlg.Hide()
+            return
+        
+        # show ObjPropDlg
+        if self.pObjPropDlg:
+            if self.pObjPropDlg.visObj != obj:
+                self.pObjPropDlg.Destroy()
+                self.pObjPropDlg = None
+        if not self.pObjPropDlg:
+            self.pObjPropDlg = ObjPropDlg.ObjPropDlg(obj, self)
+
+        self.pObjPropDlg.Show()
+        return
 
     def OnMenuHelp_About(self, event):
         """ Aboutメニューのイベント.
@@ -487,13 +560,14 @@ class ViewFrame(wx.Frame):
               + self.app.version + "\n" + self.app.copy_right
         title = "About " + self.app.app_name
         wx.MessageBox(msg, title, wx.OK|wx.ICON_INFORMATION)
-
+        return
 
     def OnToolBar_Normalize(self, event):
         """ ツールバーのNormalizeのイベント.
           event - wx.CommandEvent.
         """
         self.OnMenuView_Normalize(event)
+        return
 
     def OnToolBar_Projection(self, event):
         """ ツールバーのProjection(perspective/parallel)のイベント.

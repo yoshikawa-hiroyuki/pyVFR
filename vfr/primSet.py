@@ -23,9 +23,13 @@ class PrimSet(GfxNode):
       _rsMode: プリミティブの回転／スケール適用フラグ
                (PRIMSET_ROT, PRIMSET_SCALE のコンビネーション)
     """
-    def __init__(self, name =Node._NONAME, suicide =False):
-        GfxNode.__init__(self, name, suicide)
-        self._rsMode = PRIMSET_ROT|PRIMSET_SCALE
+    def __init__(self, **args):
+        """
+        args: rsMode =PRIMSET_ROT|PRIMSET_SCALE
+        """
+        GfxNode.__init__(self, **args)
+        self._rsMode = PRIMSET_ROT|PRIMSET_SCALE if not 'rsMode' in args \
+            else args['rsMode']
         self._prim = None
 
     def __del__(self):

@@ -35,21 +35,28 @@ class Camera(Base):
       _fogStart, _fogEnd: フォグパラメータ
       _clickSpotSize: クリックセレクション/フィードバックテストスポットサイズ
     """
-    def __init__(self, suicide =False):
-        Base.__init__(self, suicide)
+    def __init__(self, **args):
+        """
+        args: antiAlias =True, bgColor =[0.0, 0.0, 0.0, 1.0],
+              fogMode =False, fogStart =9.0, fogEnd =15.0, clickSpotSize =5
+        """
+        Base.__init__(self, **args)
         self._scene = None
         self._front = None
         self._da = None
         self._selected = []
         self._feedbacked = []
-        self._antiAlias = True
+        self._antiAlias = True if not 'antiAlias' in args else args['antiAlias']
         self._bgColor = [0.0, 0.0, 0.0, 1.0]
+        if 'bgColor' in args: self._bgColor[:] = args['bgColor'][:4]
         self._bgImage = None
         self._frustum = Frustum()
-        self._fogMode = False
-        self._fogStart = 9.0
-        self._fogEnd = 15.0
-        self._clickSpotSize = 5
+        self._fogMode = False if not 'fogMode' in args else args['fogMode']
+        self._fogStart = 9.0 if not 'fogStart' in args else args['fogStart']
+        self._fogEnd = 15.0 if not 'fogEnd' in args else args['fogEnd']
+        self._clickSpotSize = 5 if not 'clickSpotSize' in args \
+            else args['clickSpotSize']
+        return
 
     def __del__(self):
         Base.__del__(self)
@@ -844,9 +851,14 @@ class Camera3D(Camera):
     3Dカメラクラス
     透視投影および平行投影をサポートするカメラクラスです.
     """
-    def __init__(self, suicide =False):
-        Camera.__init__(self, suicide)
-        self._projMode = PR_PERSPECTIVE
+    def __init__(self, **args):
+        """
+        args: projMode =PR_PERSPECTIVE
+        """
+        Camera.__init__(self, **args)
+        self._projMode = PR_PERSPECTIVE if not 'projMode' in args \
+            else args['projMode']
+        return
 
     def setProjection(self, proj):
         """
@@ -944,8 +956,9 @@ class Camera2D(Camera):
     平行投影のみをサポートするカメラクラスです.
     視界の回転変換は行えません.
     """
-    def __init__(self, suicide =False):
-        Camera.__init__(self, suicide)
+    def __init__(self, **args):
+        Camera.__init__(self, **args)
+        return
 
     def projection(self, aspect):
         """

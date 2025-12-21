@@ -347,8 +347,11 @@ class ViewPointDlg(wx.Dialog):
 
         if not self.p_viewFrame.addViewPoint(vpname): return
         if not self.updateViewList(): return
-        self.m_pViewNameLst.SetSelection(
-            self.m_pViewNameLst.FindString(vpname))
+        try:
+            self.m_pViewNameLst.SetSelection(
+                self.m_pViewNameLst.FindString(vpname))
+        except:
+            pass
         return
 
     def OnViewNameLstClick(self, event):

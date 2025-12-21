@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-""" VisRegBounds
+"""
+VisRegBounds
 """
 import sys
 if not ".." in sys.path:
@@ -9,15 +10,28 @@ from vfr import *
 from VisObj import *
 
 
+#----------------------------------------------------------------------
 class VisRegBounds(VisObj):
     """ VisRegBoundsクラス
+        show region bound lines
     """
 
-    def __init__(self, data=None, bbox=None, coord=None,
-                 name=gfxNode.Node._NONAME):
+    def __init__(self, **args):
+        """
+        args: data =None, bbox =None, coord =None, lineWidth =1.0
+        """
+        data = None  if not 'data'  in args else args['data']
+        bbox = None  if not 'bbox'  in args else args['bbox']
+        coord = None if not 'coord' in args else args['coord']
         if data is None and bbox is None and coord is None:
             raise ValueError("The required argument is not given.")
-        VisObj.__init__(self, name)
+        VisObj.__init__(self, **args)
+        if 'lineWidth' in args:
+            self.setLineWidth(args['lineWidth'])
+        
+        self.showType = gfxNode.RT_WIRE
+
+        self._lineWidthTxt = None
 
         if not coord is None:
             self.updateCoord(coord)
@@ -26,8 +40,66 @@ class VisRegBounds(VisObj):
         elif not data is None:
             self.updateData(data)
         self.generateBbox()
+        self.show = True
         return
 
+    def getVisObjType(self):
+        return "RegBounds"
+
+    def initPP(self):
+        """ パラメータパネルの初期化(VisObjクラスのオーバーライド).
+        """
+        if not self.paramsPnl:
+            return False
+
+        sizerTop = wx.BoxSizer(orient=wx.VERTICAL)
+
+        # line_width
+        sizerH = wx.BoxSizer()
+        sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
+        sizerH.Add(wx.StaticText(self.paramsPnl, label='line width'))
+        self._lineWidthTxt = wx.TextCtrl(self.paramsPnl, value='1.0', \
+                                        style=wx.TE_PROCESS_ENTER)
+        sizerH.Add(self._lineWidthTxt, flag=wx.EXPAND|wx.ALL, \
+                   proportion=1, border=3)
+
+        # layout
+        self.paramsPnl.SetSizer(sizerTop)
+        sizerTop.Fit(self.paramsPnl)
+        self.paramsPnl.Fit()
+        
+        # event handler setup
+        self.paramsPnl.Bind(wx.EVT_TEXT_ENTER,
+                            self.OnLineWidthTxt, self._lineWidthTxt)
+
+        return True
+
+    def updatePP(self):
+        """ パラメータパネルの値を更新(VisObjクラスのオーバーライド).
+        """
+        if not self.paramsPnl or not self._lineWidthTxt:
+            return False
+        self._lineWidthTxt.SetValue(str(self._lineWidth))
+        return True
+
+    def OnLineWidthTxt(self, event):
+        """ line_width値変更のイベントハンドラー
+        """
+        try:
+            val = float(self._lineWidthTxt.GetValue())
+        except:
+            wx.MessageBox('Invalid value specified.', 'Error', style=wx.OK)
+            self.updatePP()
+            return
+        if val <= 0.0:
+            wx.MessageBox('Invalid value specified.', 'Error', style=wx.OK)
+            self.updatePP()
+            return
+        if val != self._lineWidth:
+            self.setLineWidth(val)
+            self.chkNotice()
+        return
+    
     def updateData(self, data):
         self.remAllChildren()
         try:
@@ -35,7 +107,7 @@ class VisRegBounds(VisObj):
         except Exception as e:
             raise
         
-        ls = lines.Lines()
+        ls = lines.Lines(name='RegBounds_Lines', localMaterial=False)
         if nd >= 3:
             ls.alcData(nV=24)
             x = data.shape[2] - 1.0
@@ -74,7 +146,7 @@ class VisRegBounds(VisObj):
         if len(bbox) != 2 or len(bbox[0]) != 3:
             raise ValueError("Invalid bbox specified.")
 
-        ls = lines.Lines()
+        ls = lines.Lines(name='RegBounds_Lines', localMaterial=False)
         ls.alcData(nV=24)
         pts = ((bbox[0][0], bbox[0][1], bbox[0][2]),
                (bbox[1][0], bbox[0][1], bbox[0][2]),
@@ -106,7 +178,7 @@ class VisRegBounds(VisObj):
         nz = data.shape[0]
 
         # (x0, y0, z0) - (x1, y0, z0)
-        ls = lines.LineStrip()
+        ls = lines.LineStrip(name='RegBounds_LineStrip', localMaterial=False)
         ls.alcData(nV=nx)
         for i in range(nx):
             ls._verts[i][:] = coord[0, 0, i, :]
@@ -115,7 +187,7 @@ class VisRegBounds(VisObj):
         self.addChild(ls)
 
         # (x1, y0, z0) - (x1, y1, z0)
-        ls = lines.LineStrip()
+        ls = lines.LineStrip(name='RegBounds_LineStrip', localMaterial=False)
         ls.alcData(nV=ny)
         for i in range(ny):
             ls._verts[i][:] = coord[0, i, -1, :]
@@ -124,7 +196,7 @@ class VisRegBounds(VisObj):
         self.addChild(ls)
 
         # (x1, y1, z0) - (x0, y1, z0)
-        ls = lines.LineStrip()
+        ls = lines.LineStrip(name='RegBounds_LineStrip', localMaterial=False)
         ls.alcData(nV=nx)
         for i in range(nx):
             ls._verts[i][:] = coord[0, -1, i, :]
@@ -133,7 +205,7 @@ class VisRegBounds(VisObj):
         self.addChild(ls)
 
         # (x0, y1, z0) - (x0, y0, z0)
-        ls = lines.LineStrip()
+        ls = lines.LineStrip(name='RegBounds_LineStrip', localMaterial=False)
         ls.alcData(nV=ny)
         for i in range(ny):
             ls._verts[i][:] = coord[0, i, 0, :]
@@ -142,7 +214,7 @@ class VisRegBounds(VisObj):
         self.addChild(ls)
 
         # (x0, y0, z0) - (x0, y0, z1)
-        ls = lines.LineStrip()
+        ls = lines.LineStrip(name='RegBounds_LineStrip', localMaterial=False)
         ls.alcData(nV=nz)
         for i in range(nz):
             ls._verts[i][:] = coord[i, 0, 0, :]
@@ -151,7 +223,7 @@ class VisRegBounds(VisObj):
         self.addChild(ls)
 
         # (x1, y0, z0) - (x1, y0, z1)
-        ls = lines.LineStrip()
+        ls = lines.LineStrip(name='RegBounds_LineStrip', localMaterial=False)
         ls.alcData(nV=nz)
         for i in range(nz):
             ls._verts[i][:] = coord[i, 0, -1, :]
@@ -160,7 +232,7 @@ class VisRegBounds(VisObj):
         self.addChild(ls)
 
         # (x1, y1, z0) - (x1, y1, z1)
-        ls = lines.LineStrip()
+        ls = lines.LineStrip(name='RegBounds_LineStrip', localMaterial=False)
         ls.alcData(nV=nz)
         for i in range(nz):
             ls._verts[i][:] = coord[i, -1, -1, :]
@@ -169,7 +241,7 @@ class VisRegBounds(VisObj):
         self.addChild(ls)
 
         # (x0, y1, z0) - (x0, y1, z1)
-        ls = lines.LineStrip()
+        ls = lines.LineStrip(name='RegBounds_LineStrip', localMaterial=False)
         ls.alcData(nV=nz)
         for i in range(nz):
             ls._verts[i][:] = coord[i, -1, 0, :]
@@ -179,7 +251,7 @@ class VisRegBounds(VisObj):
 
         
         # (x0, y0, z1) - (x1, y0, z1)
-        ls = lines.LineStrip()
+        ls = lines.LineStrip(name='RegBounds_LineStrip', localMaterial=False)
         ls.alcData(nV=nx)
         for i in range(nx):
             ls._verts[i][:] = coord[-1, 0, i, :]
@@ -188,7 +260,7 @@ class VisRegBounds(VisObj):
         self.addChild(ls)
 
         # (x1, y0, z1) - (x1, y1, z1)
-        ls = lines.LineStrip()
+        ls = lines.LineStrip(name='RegBounds_LineStrip', localMaterial=False)
         ls.alcData(nV=ny)
         for i in range(ny):
             ls._verts[i][:] = coord[-1, i, -1, :]
@@ -197,7 +269,7 @@ class VisRegBounds(VisObj):
         self.addChild(ls)
 
         # (x1, y1, z1) - (x0, y1, z1)
-        ls = lines.LineStrip()
+        ls = lines.LineStrip(name='RegBounds_LineStrip', localMaterial=False)
         ls.alcData(nV=nx)
         for i in range(nx):
             ls._verts[i][:] = coord[-1, -1, i, :]
@@ -206,7 +278,7 @@ class VisRegBounds(VisObj):
         self.addChild(ls)
 
         # (x0, y1, z1) - (x0, y0, z1)
-        ls = lines.LineStrip()
+        ls = lines.LineStrip(lname='RegBounds_LineStrip', ocalMaterial=False)
         ls.alcData(nV=ny)
         for i in range(ny):
             ls._verts[i][:] = coord[-1, i, 0, :]
@@ -224,7 +296,7 @@ if __name__ == '__main__':
     
     import numpy as np
     d = np.ndarray([10,20,30])
-    bounds = VisRegBounds(data=d)
+    bounds = VisRegBounds(name='TestBounds', data=d, lineWidth=5)
     arena.addObject(bounds)
 
     app.run()

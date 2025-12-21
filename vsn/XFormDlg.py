@@ -26,7 +26,7 @@ class XFormDlg(wx.Dialog):
         sizerTop = wx.BoxSizer(orient=wx.VERTICAL)
 
         # translation
-        sizerTop.Add(wx.StaticText(self, label='Translation'))
+        sizerTop.Add(wx.StaticText(self, size=wx.Size(400,-1), label='Translation'))
         sizerH = wx.BoxSizer()
         sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
         sizerH.Add(wx.StaticText(self,label='X'),
@@ -283,6 +283,7 @@ if __name__ == '__main__':
     dlg = XFormDlg(x)
     #dlg.ShowModal()
     dlg.Show()
+    """
     app.Yield()
     import time
     time.sleep(5)
@@ -290,3 +291,6 @@ if __name__ == '__main__':
     app.Yield()
     time.sleep(5)
     print(x)
+    """
+    app.MainLoop()
+    

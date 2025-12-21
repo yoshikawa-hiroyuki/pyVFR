@@ -11,6 +11,8 @@ if not ".." in sys.path:
 import wx
 from ViewFrame import ViewFrame
 from Arena import Arena
+from vfr import singleton
+
 
 class VsnApp(wx.App):
     """ Appクラス
@@ -19,11 +21,17 @@ class VsnApp(wx.App):
       _arena: アリーナ(シーングラフのルート)
     """
 
+    # setup singleton
+    __metaclass__ = singleton.Singleton
+
+    
     def __init__(self):
         """ 初期設定.
         """
 	# if you want to redirect stdout/stderr, use wx.App.__init__(self)
         wx.App.__init__(self, 0)
+
+        return
 
 
     def OnInit(self):
@@ -39,7 +47,7 @@ class VsnApp(wx.App):
         self.SetTopWindow(self._viewFrame)
 
         # Arena
-        self._arena = self._viewFrame.gfxView.root
+        self._arena = self._viewFrame.gfxView.getArena()
 
         return True
 

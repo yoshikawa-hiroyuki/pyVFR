@@ -52,15 +52,22 @@ class Vectors(GfxNode):
       showZero: 長さが0のベクトルを(点で)表示するかどうか
     """
 
-    def __init__(self, name =Node._NONAME, suicide =False):
-        GfxNode.__init__(self, name, suicide)
+    def __init__(self, **args):
+        """
+        args: showHead =True, posType =VECPOS_NORMAL, headScale =0.2, 
+              headWidth =0.05, scaleFactor =1.0, showZero =True
+        """
+        GfxNode.__init__(self, **args)
         self._renderMode = RT_WIRE
-        self.showHead = True
-        self.posType = VECPOS_NORMAL
-        self.headScale = 0.2
-        self.headWidth = 0.05
-        self.scaleFactor = 1.0
-        self.showZero = True
+        self.showHead = True if not 'showHead' in args else args['showHead']
+        self.posType = VECPOS_NORMAL if not 'posType' in args \
+            else args['posType']
+        self.headScale = 0.2 if not 'headScale' in args else args['headScale']
+        self.headWidth = 0.05 if not 'headWidth' in args else args['headWidth']
+        self.scaleFactor = 1.0 if not 'scaleFactor' in args \
+            else args['scaleFactor']
+        self.showZero = True if not 'showZero' in args else args['showZero']
+        return
 
     def renderWire(self):
         """
@@ -152,8 +159,7 @@ class Vectors(GfxNode):
 #----------------------------------------------------------------------
 def ReadPwn(path):
     """
-    PWNファイルを入力し，対応するVectorsクラスのインスタンスを生成し，
-    返す関数です．
+    PWNファイルを入力し，対応するVectorsクラスのインスタンスを生成し，返す関数です．
     - path: PWN(Points With Normals)形式のファイルのパス
     """
     vecNode = None

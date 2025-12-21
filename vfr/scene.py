@@ -15,10 +15,10 @@ class Scene(GfxGroup):
     Sceneクラスは、複数の子供のシーングラフノードとライティングノードを
     持つ事ができるノードで、シーングラフのルートとなるものです.
     """
-    def __init__(self, name ='scene', suicide =False):
-        GfxGroup.__init__(self, name, suicide)
-        self._light = [Light(0, 'light0'), Light(1, 'light1'),
-                       Light(2, 'light2'), Light(3, 'light3')]
+    def __init__(self, **args):
+        GfxGroup.__init__(self, **args)
+        self._light = [Light(0, name='light0'), Light(1, name='light1'),
+                       Light(2, name='light2'), Light(3, name='light3')]
         for l in self._light:
             l.addRef(self)
         self._light[0]._on = True

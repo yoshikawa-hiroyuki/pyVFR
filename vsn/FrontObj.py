@@ -19,12 +19,10 @@ class FrontObj(gfxGroup.GfxGroup):
     """ FrontObjクラス
      FrontAxisの基底クラスです.
     """
-    def __init__(self, name =gfxNode.Node._NONAME, suicide =False):
+    def __init__(self, **args):
         """ 初期設定.
-          name - String. name.
-          suicide - bool. True:suicideが有効, False:無効
         """
-        gfxGroup.GfxGroup.__init__(self, name, suicide)
+        gfxGroup.GfxGroup.__init__(self, **args)
 
     def setPosition(self, x, y):
         """ Positionを設定.
@@ -67,12 +65,10 @@ class FrontAxis(FrontObj):
         (0x18, 0x18, 0x18, 0x18, 0x1c, 0x26, 0x43, 0x81),
         (0xFF, 0x61, 0x30, 0x18, 0x0c, 0x06, 0x83, 0x7f))
     
-    def __init__(self, name =gfxNode.Node._NONAME, suicide =False):
+    def __init__(self, **args):
         """ 初期設定.
-          name - String. name.
-          suicide - bool. suicideフラグ.
         """
-        FrontObj.__init__(self, name, suicide)
+        FrontObj.__init__(self, **args)
 
         # axes arrow
         self.axes = vectors.Vectors()

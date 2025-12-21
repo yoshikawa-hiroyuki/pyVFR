@@ -14,14 +14,18 @@ class Base(object):
     相互参照リンク機能を持つオブジェクトの基底クラスです．
       _alive: 有効／無効フラグ
       _Ref[]: 参照リンクリスト
-      _doSuicide: 自己破壊モード．参照リンクのカウントが0になった時に，
-      　　　　　　　自分自身を無効化します．
+      _doSuicide: 自己破壊モード．参照リンクのカウントが0になった時に
+                  自分自身を無効化します．
     """
 
-    def __init__(self, suicide =False):
+    def __init__(self, **args):
+        """
+        args: suicide =False
+        """
         self._alive = True
         self._Ref = []
-        self._doSuicide = suicide
+        self._doSuicide = False if not 'suicide' in args else args['suicide']
+        return
 
     def __del__(self, object=object):
         self.destroy()
@@ -124,11 +128,15 @@ class Node(Base):
     """ノード名初期値"""
     _NONAME = '%%noname%%'
     
-    def __init__(self, name =_NONAME, suicide =False):
-        Base.__init__(self, suicide)
+    def __init__(self, **args):
+        """
+        args: name =Node._NONAME
+        """
+        Base.__init__(self, **args)
         Node._sequence += 1
         self._id = Node._sequence
-        self._name = name
+        self._name = Node._NONAME if not 'name' in args else args['name']
+        return
         
     def __del__(self):
         Base.__del__(self)
@@ -206,9 +214,10 @@ class Group(Node):
     複数の子供のノードを持つ事ができるグルーピングノードのクラスです．
       _children[]: 子供ノードへの参照リスト
     """
-    def __init__(self, name =Node._NONAME, suicide =False):
-        Node.__init__(self, name, suicide)
+    def __init__(self, **args):
+        Node.__init__(self, **args)
         self._children = []
+        return
 
     def __del__(self):
         Node.__del__(self)

@@ -46,13 +46,19 @@ class Letters(GfxNode):
       fontScale: 文字フォントスケール
       spaceRate: 文字間隔比率
     """
-    def __init__(self, name =Node._NONAME, suicide =False, font =FONT_LINE):
-        GfxNode.__init__(self, name, suicide)
-        self.font = font
-        self.textBuf = ""
-        self.alignType = AL_LEFT
-        self.fontScale = 1.0
-        self.spaceRate = 0.05
+    def __init__(self, **args):
+        """
+        args: font =FONT_LINE, textBuf ="", alignType =AL_LEFT,
+              fontScale =1.0, spaceRate =0.05
+        """
+        GfxNode.__init__(self, **args)
+        self.font = FONT_LINE if not 'font' in args else args['font']
+        self.textBuf = "" if not 'textBuf' in args else args['textBuf']
+        self.alignType = AL_LEFT if not 'alignType' in args \
+            else args['alignType']
+        self.fontScale = 1.0 if not 'fontScale' in args else args['fontScale']
+        self.spaceRate = 0.05 if not 'spaceRate' in args else args['spaceRate']
+        return
 
     def setLetters(self, str):
         """

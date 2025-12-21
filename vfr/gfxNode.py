@@ -107,6 +107,7 @@ class GfxNode(Node, Obj):
       _normalMode: 法線ベクトルタイプ(AT_WHOLE,AT_PER_VERTEX,AT_PER_FACE)
       _colorMode: 色タイプ(AT_WHOLE,AT_PER_VERTEX,AT_PER_FACE)
       _feedbackMode: フィードバックテストタイプ(FB_VERTEX,FB_FACE,FB_EDGE)
+      _useLocalMaterial: 自分自身のマテリアル情報を有効にするか
       _renderMode: レンダリングモード(RT_NONE,RT_SMOOTH,RT_FLAT,RT_NOLIGHT,
            RT_WIRE,RT_POINT,RT_NOTEXTUREの合成)
       _pickable: セレクション対象フラグ
@@ -147,8 +148,11 @@ class GfxNode(Node, Obj):
     """ディスプレイリスト使用モード"""
     __useDispList = True
     
-    def __init__(self, name =Node._NONAME, suicide =False):
-        Node.__init__(self, name, suicide)
+    def __init__(self, **args):
+        """
+        args: localMaterial =True
+        """
+        Node.__init__(self, **args)
         Obj.__init__(self)
 
         self.alcData(nC=1)
@@ -160,6 +164,8 @@ class GfxNode(Node, Obj):
         self._colorMode = AT_WHOLE
         self._feedbackMode = FB_VERTEX
 
+        self._useLocalMaterial = True if not 'localMaterial' in args \
+            else args['localMaterial']
         self._specular = [0.0, 0.0, 0.0, 1.0]
         self._ambient = [0.2, 0.2, 0.2, 1.0]
         self._shininess = [5.0]
@@ -514,6 +520,8 @@ class GfxNode(Node, Obj):
         マテリアル属性適用
         設定されているマテリアル属性をOpenGLに適用します．
         """
+        if not self._useLocalMaterial: return
+        
         glMaterialfv(self._faceMode, GL_AMBIENT, self._ambient)
         glMaterialfv(self._faceMode, GL_SPECULAR, self._specular)
         glMaterialfv(self._faceMode, GL_SHININESS, self._shininess)
@@ -542,6 +550,8 @@ class GfxNode(Node, Obj):
         マテリアル属性無効化
         OpenGLに適用したマテリアル属性を無効化します．
         """
+        if not self._useLocalMaterial: return
+
         if not self._lineStipple == ST_SOLID:
             glLineStipple(1, GfxNode.__stipplePattern[ST_SOLID])
             glDisable(GL_LINE_STIPPLE)

@@ -19,13 +19,13 @@ class ViewCamera(camera.Camera3D):
     """ ViewCameraクラス.
     """
 
-    def __init__(self, suicide =False):
+    def __init__(self, **args):
         """ 初期設定.
-          suicide - suicideフラグ
         """
-        camera.Camera3D.__init__(self, suicide)
+        camera.Camera3D.__init__(self, **args)
         froot = gfxGroup.GfxGroup(name="FRONT", suicide=True)
         self.setFrontNode(froot)
+        return
 
     def addToFront(self, fobj):
         """ オブジェクトの追加.

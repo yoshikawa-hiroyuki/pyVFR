@@ -275,7 +275,7 @@ class GfxAct_Selection(GfxAct_Base):
         else:
             return
 
-        arena = self.gfxView.parent.arena
+        arena = self.gfxView.getArena()
         if not arena: return
 
         nodeLst = ()

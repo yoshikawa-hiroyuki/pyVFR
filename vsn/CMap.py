@@ -124,6 +124,13 @@ class CMapBar(wx.Window):
             brush.SetColour(col)
             dc.SetBrush(brush)
             dc.DrawRectangle(w3 * 2 -2, 0, w3, h)
+            # border
+            col = wx.Colour(0, 0, 0)
+            pen.SetColour(col)
+            dc.SetPen(pen)
+            dc.SetBrush(wx.Brush("white", wx.TRANSPARENT))
+            dc.DrawRectangle(0, 0, w3*3, h)
+            dc.DrawRectangle(w3, 0, w3*2, h)
 
         return
 
