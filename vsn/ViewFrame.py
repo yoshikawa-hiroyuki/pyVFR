@@ -59,6 +59,13 @@ class ViewFrame(wx.Frame):
           style - long. style.
           name - String. name.
         """
+        # view point dialog
+        self.viewPointLst = {}
+        self.pViewPointDlg = None
+
+        # visObj properties dialog
+        self.pObjPropDlg = None
+
         wx.Frame.__init__(self, parent, ID, title, pos, size, style, name)
         self.parent = parent
 
@@ -74,23 +81,13 @@ class ViewFrame(wx.Frame):
         self.setupMenuBar()
         self.setupToolBar()
 
-        # view point dialog
-        self.viewPointLst = {}
-        self.pViewPointDlg = None
-
-        # visObj properties dialog
-        self.pObjPropDlg = None
-
         return
 
     
     def __del__(self):
         """ 終了処理.
         """
-        del self.parent
-        del self.gfxView
-        del self.pViewPointDlg
-        del self.pObjPropDlg
+        if self.gfxView: del self.gfxView
         return
 
     
@@ -169,6 +166,8 @@ class ViewFrame(wx.Frame):
 
         # event
         self.Bind(wx.EVT_MENU, self.OnMenu)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
 
         # update UI
         self.Bind(wx.EVT_UPDATE_UI, self.OnUpdateMenu)
@@ -378,7 +377,8 @@ class ViewFrame(wx.Frame):
         """ Quitメニューのイベント.
          event - wx.MenuEvent.
         """
-        self.Close(True)
+        #self.Close(True)
+        seld.Destroy()
         return
 
     def OnMenuView_Normalize(self, event):
@@ -615,3 +615,16 @@ class ViewFrame(wx.Frame):
 
         self.gfxView.sceneGraphUpdated()
         return
+
+    def OnDestroy(self, event):
+        if self.pObjPropDlg: self.pObjPropDlg.Destroy()
+        if self.pViewPointDlg: self.pViewPointDlg.Destroy()
+        if self.gfxView:
+            del self.gfxView
+            self.gfxView = None
+        return
+
+    def OnClose(self, event):
+        self.Destroy()
+        return
+    

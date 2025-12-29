@@ -22,7 +22,7 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         xform.XForm.__init__(self)
 
         self.showType = gfxNode.RT_SMOOTH
-        
+
         self.hilight = 0.0
         self.antiAlias = False
         self.lut = lut.Lut()
@@ -73,6 +73,7 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
     @property
     def show(self):
         return (self._renderMode != gfxNode.RT_NONE)
+
     @show.setter
     def show(self, value):
         if not value:
@@ -84,12 +85,29 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
     #---------- "lighting" property
     @property
     def lighting(self):
-        return (self.showType & (gfxNode.RT_SMOOTH|gfxNode.RT_FLAT))
+        if not self.canLighting():
+            return False
+        return not (self.showType & gfxNode.RT_NOLIGHT)
+
     @lighting.setter
     def lighting(self, value):
-        pass
+        if not self.canLighting():
+            return
+        if value:
+            self.showType = self.showType & (not gfxNode.RT_NOLIGHT)
+        else:
+            self.showType = self.showType & gfxNode.RT_NOLIGHT
+        if self.show:
+            self.setRenderMode(self.showType)
+        return
+    
     def canLighting(self):
-        return self.lighting
+        if self.showType == gfxNode.RT_POINT or \
+           self.showType == gfxNode.RT_WIRE or \
+           self.showType == (gfxNode.RT_POINT|gfxNode.RT_WIRE):
+            return False
+        return True
+
     
     def setFocus(self, mode):
         """ Focusの設定.
@@ -118,7 +136,7 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         """
         if self.xformDlg is None:
             if not show: return
-            self.xformDlg = XFormDlg(self, None)
+            self.xformDlg = XFormDlg.XFormDlg(self, None)
             title = 'XForm: ' + self._name
             self.xformDlg.SetTitle(title)
         self.xformDlg.Show(show)

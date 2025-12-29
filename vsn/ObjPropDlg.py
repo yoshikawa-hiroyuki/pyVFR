@@ -103,8 +103,14 @@ class ObjPropDlg(wx.Dialog):
         self.Bind(wx.EVT_BUTTON, self.OnCMapEditBtn, self.cmapEditBtn)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnCMapMinMaxTxt, self.cmapMinTxt)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnCMapMinMaxTxt, self.cmapMaxTxt)
+        self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
         
         return
+
+    def __del__(self):
+        if self._visObj: del self._visObj
+        return
+    
 
     @property
     def visObj(self):
@@ -114,18 +120,18 @@ class ObjPropDlg(wx.Dialog):
     # Event handlers
     def OnDeleteBtn(self, event):
         if not self._visObj: return
+        self._visObj.destroy()
         return
 
     def OnShowChk(self, event):
         if not self._visObj: return
-        if self._visObj.getRenderMode() == RT_NONE:
-            self._visObj.setRenderMode(RT_SMOOTH)
-        else:
-            self._visObj.setRenderMode(RT_NONE)
+        self._visObj.show = self.showChk.GetValue()
         return
 
     def OnLightingChk(self, event):
         if not self._visObj: return
+        if not self.lightingChk: return
+        
         return
 
     def OnXFormBtn(self, event):
@@ -143,6 +149,10 @@ class ObjPropDlg(wx.Dialog):
 
     def OnCMapMinMaxTxt(self,event):
         if not self._visObj: return
+        return
+
+    def OnDestroy(self, event):
+        if self._visObj: self._visObj.destroy()
         return
 
 
