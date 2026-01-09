@@ -378,7 +378,7 @@ class ViewFrame(wx.Frame):
          event - wx.MenuEvent.
         """
         #self.Close(True)
-        seld.Destroy()
+        self.Destroy()
         return
 
     def OnMenuView_Normalize(self, event):

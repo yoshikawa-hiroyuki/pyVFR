@@ -266,3 +266,10 @@ class Arena(gfxGroup.GfxGroup):
                 pvr.DrawVolume(M)
         # done
         return
+
+    
+#----------------------------------------------------------------------
+# グローバルインスタンス
+g_arena = Arena(name='ROOT', suicide=True)
+def GetArena():
+    return g_arena

@@ -4,14 +4,34 @@
 """ Vsn app main
 """
 import os, sys
+import contextlib
 if not ".." in sys.path:
     sys.path = sys.path + [".."]
 
+    
+#----------------------------------------------------------------------
+# Suppressing ‘warning logs’ in the macOS OpenGL implementation
+
+@contextlib.contextmanager
+def suppress_stderr():
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    old_stderr = os.dup(2)
+    os.dup2(devnull, 2)
+    os.close(devnull)
+    try:
+        yield
+    finally:
+        os.dup2(old_stderr, 2)
+        os.close(old_stderr)
+
+
 #----------------------------------------------------------------------
 import wx
-from ViewFrame import ViewFrame
+import code
+import threading
+
+import ViewFrame
 from Arena import Arena
-from vfr import singleton
 
 
 class VsnApp(wx.App):
@@ -21,10 +41,6 @@ class VsnApp(wx.App):
       _arena: アリーナ(シーングラフのルート)
     """
 
-    # setup singleton
-    __metaclass__ = singleton.Singleton
-
-    
     def __init__(self):
         """ 初期設定.
         """
@@ -41,11 +57,11 @@ class VsnApp(wx.App):
         self.SetAppName('Vsn')
 
         # ViewFrame window
-        self._viewFrame = ViewFrame(None, -1, "vsn", size=(800,600))
+        self._viewFrame = ViewFrame.ViewFrame(None, -1, "vsn", size=(800,600))
         self._viewFrame.Show(True)
         self._viewFrame.setApp(self)
         self.SetTopWindow(self._viewFrame)
-
+        
         # Arena
         self._arena = self._viewFrame.gfxView.getArena()
 
@@ -98,15 +114,29 @@ class VsnApp(wx.App):
         """
         return self._arena
 
+    # equivalent to getArena()
     getScene = getArena
 
+    @staticmethod
+    def console_procedure():
+        console = code.InteractiveConsole(locals())
+        console.interact("Custom interactive console. Type Python code here.")
+
+    @staticmethod
+    def run_console():
+        threading.Thread(target=VsnApp.console_procedure, daemon=True).start()
     
-    def run(self):
-        self.MainLoop()
+    def run(self, debug=False):
+        if debug:
+            self.MainLoop()
+        else:
+            with suppress_stderr():
+                self.MainLoop()
 
 
 if __name__ == '__main__':
     app = VsnApp()
+    app.run_console()
     app.run()
     
 

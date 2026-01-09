@@ -62,7 +62,8 @@ class GfxView(object):
         self._R.addChild(self._S)
         self._IC = gfxGroup.GfxGroup(name='IC', suicide=True)
         self._S.addChild(self._IC)
-        self.root = Arena.Arena(name='ROOT', suicide=True)
+        #self.root = Arena.Arena(name='ROOT', suicide=True)
+        self.root = Arena.GetArena()
         self._IC.addChild(self.root)
 
         self.faxis = FrontAxis(suicide=True)

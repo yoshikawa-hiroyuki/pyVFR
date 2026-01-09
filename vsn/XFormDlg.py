@@ -26,7 +26,8 @@ class XFormDlg(wx.Dialog):
         sizerTop = wx.BoxSizer(orient=wx.VERTICAL)
 
         # translation
-        sizerTop.Add(wx.StaticText(self, size=wx.Size(400,-1), label='Translation'))
+        sizerTop.Add(wx.StaticText(self, size=wx.Size(400,-1),
+                                   label='Translation'))
         sizerH = wx.BoxSizer()
         sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
         sizerH.Add(wx.StaticText(self,label='X'),
@@ -260,21 +261,24 @@ class XFormDlg(wx.Dialog):
           evt - wx.CommandEvent.
         """
         self.updateRefXForm()
+        return
 
     def OnResetBtn(self, evt):
         """ Resetボタンのイベント.
           evt - wx.CommandEvent.
         """
-        if not self._xform: return False
+        if not self._xform: return
         self._xform.resetXForm()
         self.update()
+        return
 
     def OnCloseBtn(self, evt):
         """ Closeボタンのイベント.
           evt - wx.CommandEvent.
         """
-        if self.IsModal(): self.EndModal(wx.ID_CANCEL)
+        if self.IsModal(): self.EndModal(wx.ID_OK)
         else: self.Hide()
+        return
 
 
 if __name__ == '__main__':
@@ -283,14 +287,5 @@ if __name__ == '__main__':
     dlg = XFormDlg(x)
     #dlg.ShowModal()
     dlg.Show()
-    """
-    app.Yield()
-    import time
-    time.sleep(5)
-    dlg.SetTitle('AAA')
-    app.Yield()
-    time.sleep(5)
-    print(x)
-    """
     app.MainLoop()
     

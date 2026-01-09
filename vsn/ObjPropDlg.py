@@ -4,6 +4,7 @@ import wx
 import sys
 import VisObj
 import CMap
+import EditPropDlg
 
 
 #----------------------------------------------------------------------
@@ -19,6 +20,7 @@ class ObjPropDlg(wx.Dialog):
         """
         wx.Dialog.__init__(self, parent, -1, "Set VisObj properties")
         self._visObj = visObj
+        self.parent = parent
 
         sizerTop = wx.BoxSizer(orient=wx.VERTICAL)
 
@@ -120,7 +122,17 @@ class ObjPropDlg(wx.Dialog):
     # Event handlers
     def OnDeleteBtn(self, event):
         if not self._visObj: return
+        dlg = wx.MessageDialog(None,
+            f'Do you want to delete the VisObj {self._visObj._name}',
+            'confirm', style=wx.ICON_INFORMATION | wx.OK | wx.CANCEL)
+        ret = dlg.ShowModal()
+        if ret != wx.ID_OK: return
+        
         self._visObj.destroy()
+        self._visObj = None
+        if self.parent:
+            self.parent.Refresh()
+        self.Close()
         return
 
     def OnShowChk(self, event):
@@ -131,7 +143,7 @@ class ObjPropDlg(wx.Dialog):
     def OnLightingChk(self, event):
         if not self._visObj: return
         if not self.lightingChk: return
-        
+        self._visObj.lighting = self.lightingChk.GetValue()
         return
 
     def OnXFormBtn(self, event):
@@ -141,6 +153,8 @@ class ObjPropDlg(wx.Dialog):
     
     def OnPropEditBtn(self, event):
         if not self._visObj: return
+        dlg = EditPropDlg.EditPropDlg(self._visObj, self)
+        dlg.ShowModal()
         return
 
     def OnCMapEditBtn(self, event):
@@ -152,7 +166,9 @@ class ObjPropDlg(wx.Dialog):
         return
 
     def OnDestroy(self, event):
-        if self._visObj: self._visObj.destroy()
+        if self._visObj:
+            self._visObj.destroy()
+            self._visObj = None
         return
 
 

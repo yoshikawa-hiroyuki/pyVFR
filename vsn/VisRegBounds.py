@@ -299,5 +299,6 @@ if __name__ == '__main__':
     bounds = VisRegBounds(name='TestBounds', data=d, lineWidth=5)
     arena.addObject(bounds)
 
-    app.run()
+    app.run_console()
+    app.run(debug=True)
     

@@ -80,6 +80,7 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
             self.setRenderMode(gfxNode.RT_NONE)
         else:
             self.setRenderMode(self.showType)
+        self.chkNotice()
         return
 
     #---------- "lighting" property

@@ -8,13 +8,14 @@ import sys, os
 import wx
 if not ".." in sys.path:
     sys.path = sys.path + [".."]
+import Arena
 
 
 class ObjSelectDlg(wx.Dialog):
     """ ObjSelectDlgクラス.
     """
 
-    def __init__(self, parent, ID=-1, title='ObjSelect',
+    def __init__(self, parent, ID=-1, title='ObjSelect', exceptId=-1,
                  pos=wx.DefaultPosition, size=(400, 300)):
         """ 初期設定.
           parent - wx.Window. parent window.
@@ -25,6 +26,7 @@ class ObjSelectDlg(wx.Dialog):
         """
         super().__init__(parent, title=title, size=size, pos=pos)
         self.parent = parent
+        self.exceptId = exceptId
 
         panel = wx.Panel(self)
 
@@ -48,8 +50,8 @@ class ObjSelectDlg(wx.Dialog):
         sizerH.Add(okBtn, flag=wx.ALL, border=3)
         sizerH.Add(cancelBtn, flag=wx.ALL, border=3)
         sizer.Add(sizerH, 0, wx.ALIGN_CENTER | wx.BOTTOM, 10)
-
         panel.SetSizer(sizer)
+
         return
 
     
@@ -57,9 +59,8 @@ class ObjSelectDlg(wx.Dialog):
         if not self.listCtl:
             return
         self.listCtl.DeleteAllItems()
-        if not self.parent or not self.parent.isViewFrame():
-            return
-        arena = self.parent.getArena()
+
+        arena = Arena.GetArena()
         if not arena:
             return
 
@@ -68,6 +69,8 @@ class ObjSelectDlg(wx.Dialog):
         for n in range(numObj):
             obj = arena.getObject(n)
             if not obj:
+                continue
+            if obj.getID() == self.exceptId:
                 continue
             self.listCtl.InsertItem(idx, obj.getVisObjType())
             self.listCtl.SetItem(idx, 1, obj.getName())
@@ -91,7 +94,7 @@ class ObjSelectDlg(wx.Dialog):
             return None
         obj = arena.getObject(idx)
         return obj
-    
+
 
 if __name__ == '__main__':
     app = wx.App()
