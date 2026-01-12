@@ -5,6 +5,7 @@ import sys
 import VisObj
 import CMap
 import EditPropDlg
+import CMap
 
 
 #----------------------------------------------------------------------
@@ -12,7 +13,7 @@ class ObjPropDlg(wx.Dialog):
     """ ObjPropDlgクラス.
     """
     
-    def __init__(self, visObj, parent=None):
+    def __init__(self, parent, visObj=None):
         """ 初期設定.
         ObjPropダイアログのUIを作成します.
           visObj - VisObj. プロパティを定する対象.
@@ -106,13 +107,36 @@ class ObjPropDlg(wx.Dialog):
         self.Bind(wx.EVT_TEXT_ENTER, self.OnCMapMinMaxTxt, self.cmapMinTxt)
         self.Bind(wx.EVT_TEXT_ENTER, self.OnCMapMinMaxTxt, self.cmapMaxTxt)
         self.Bind(wx.EVT_WINDOW_DESTROY, self.OnDestroy)
-        
+
+        self.update()
         return
 
     def __del__(self):
         if self._visObj: del self._visObj
         return
-    
+
+    def update(self):
+        if not self._visObj: return
+
+        # propBar
+        self.propBar.colour[:] = self._visObj._colors[0][:]
+        self.propBar.hilight = self._visObj.hilight
+        self.propBar.Refresh(False)
+
+        # cmapBar
+        self.cmapBar.setLut(self._visObj.lut)
+        self.cmapBar.Refresh(False)
+
+        # show, lihtting
+        self.showChk.SetValue(self._visObj.show)
+        self.lightingChk.SetValue(self._visObj.lighting)
+
+        # minmax
+        self.cmapMinTxt.SetValue(str(self._visObj.lut.minVal))
+        self.cmapMaxTxt.SetValue(str(self._visObj.lut.maxVal))
+
+        self.Refresh()
+        return
 
     @property
     def visObj(self):
@@ -153,16 +177,32 @@ class ObjPropDlg(wx.Dialog):
     
     def OnPropEditBtn(self, event):
         if not self._visObj: return
-        dlg = EditPropDlg.EditPropDlg(self._visObj, self)
-        dlg.ShowModal()
+        dlg = EditPropDlg.EditPropDlg(self, self._visObj)
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        self.update()
         return
 
     def OnCMapEditBtn(self, event):
         if not self._visObj: return
+        dlg = CMap.CMapDlg(self, self._visObj)
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        self.update()
         return
 
     def OnCMapMinMaxTxt(self,event):
         if not self._visObj: return
+        try:
+            minVal = float(self.cmapMinTxt.GetValue())
+            maxVal = float(self.cmapMaxTxt.GetValue())
+        except:
+            self.update()
+            return
+        self._visObj.lut.minVal = minVal
+        self._visObj.lut.maxVal = maxVal
+        self._visObj.update()
+        self._visObj.chkNotice()
         return
 
     def OnDestroy(self, event):
@@ -177,5 +217,3 @@ if __name__ == '__main__':
     dlg = ObjPropDlg(None)
     dlg.Show()
     app.MainLoop()
-
-

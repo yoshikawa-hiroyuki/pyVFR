@@ -121,7 +121,9 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
 
     def updateRenderMode(self):
         self.setBboxShowMode(self.focused)
-
+        return
+    
+        
     def updateXForm(self):
         """ XFormの更新.
          XFormのmatrixを取得して自身のmatrixに設定します.
@@ -176,4 +178,11 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         if self.paramsPnl:
             self.updatePP()
         return
+    
+    def update(self):
+        """ 表示更新(派生クラスで実装).
+        """
+        self.notice()
+        return
+    
     

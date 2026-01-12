@@ -16,6 +16,9 @@ class VisRegBounds(VisObj):
         show region bound lines
     """
 
+    (BOUNDS_NONE, BOUNDS_BY_DATA, BOUNDS_BY_BBOX, BOUNDS_BY_COORD) = range(4)
+    
+
     def __init__(self, **args):
         """
         args: data =None, bbox =None, coord =None, lineWidth =1.0
@@ -30,7 +33,8 @@ class VisRegBounds(VisObj):
             self.setLineWidth(args['lineWidth'])
         
         self.showType = gfxNode.RT_WIRE
-
+        self.mode = VisRegBounds.BOUNDS_NONE
+        
         self._lineWidthTxt = None
 
         if not coord is None:
@@ -139,6 +143,7 @@ class VisRegBounds(VisObj):
 
         ls.generateBbox()
         self.addChild(ls)
+        self.mode = VisRegBounds.BOUNDS_BY_DATA
         return
 
     def updateBbox(self, bbox):
@@ -162,6 +167,7 @@ class VisRegBounds(VisObj):
             continue
         ls.generateBbox()
         self.addChild(ls)
+        self.mode = VisRegBounds.BOUNDS_BY_BBOX
         return
 
     def updateCoord(self, coord):
@@ -285,7 +291,7 @@ class VisRegBounds(VisObj):
             continue
         ls.generateBbox()
         self.addChild(ls)
-
+        self.mode = VisRegBounds.BOUNDS_BY_COORD
         return
 
 
@@ -299,6 +305,6 @@ if __name__ == '__main__':
     bounds = VisRegBounds(name='TestBounds', data=d, lineWidth=5)
     arena.addObject(bounds)
 
-    app.run_console()
+    #app.run_console()
     app.run(debug=True)
     

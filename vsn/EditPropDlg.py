@@ -11,11 +11,11 @@ class EditPropDlg(wx.Dialog):
     """ EditPropDlgクラス.
     """
     
-    def __init__(self, visObj, parent=None):
+    def __init__(self, parent, visObj=None):
         """ 初期設定.
         EditPropダイアログのUIを作成します.
-          visObj - VisObj. プロパティを定する対象.
           parent - wx.Window. 親widget
+          visObj - VisObj. プロパティを定する対象.
         """
         wx.Dialog.__init__(self, parent, -1, "Edit VisObj properties")
         self._visObj = visObj
@@ -71,7 +71,7 @@ class EditPropDlg(wx.Dialog):
             pass
         self.cancelBtn = wx.Button(self, label='Cancel')
         sizerH.Add(self.cancelBtn, flag=wx.ALL, border=3)
-        self.closeBtn = wx.Button(self, label='Close')
+        self.closeBtn = wx.Button(self, label='OK')
         sizerH.Add(self.closeBtn, flag=wx.ALL, border=3)
 
         # layouts
@@ -306,7 +306,7 @@ if __name__ == '__main__':
     dummy = DummyObj()
     
     app = wx.App()
-    dlg = EditPropDlg(dummy)
+    dlg = EditPropDlg(None, dummy)
     dlg.Show()
     app.MainLoop()
     

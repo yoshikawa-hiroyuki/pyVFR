@@ -28,7 +28,8 @@ import sys
 if not ".." in sys.path:
     sys.path = sys.path + [".."]
 from vfr.lut import *
-import App
+import Arena
+import ObjSelectDlg
 
 
 #----------------------------------------------------------------
@@ -312,16 +313,16 @@ class CMapDlg(wx.Dialog):
     """ Color mapダイアログクラス
      CMapCanvas, CMapBarを用いたcolor mapのUIを提供します.
     """
-    def __init__(self, parent, app, ID=-1, title="CMapDlg"):
+    def __init__(self, parent, ref=None, ID=-1, title="CMapDlg"):
         """ 初期設定.
           parent - wx.Window. 親widget.
-          app - App.
+          ref - Reference obj.
           ID - int. ID.
           title - String. ダイアログの表題.
         """
         wx.Dialog.__init__(self, parent, ID, title)
         self.parent = parent
-        self.app = app
+        self.ref = ref
         self.lut = Lut()
         self.lut_back = Lut()
         self.lutImpDir = ""
@@ -341,7 +342,7 @@ class CMapDlg(wx.Dialog):
         copyBtn = wx.Button(self, -1, 'Copy')
         resetBtn = wx.Button(self, -1, 'Reset')
         cancelBtn = wx.Button(self, -1, 'Cancel')
-        closeBtn = wx.Button(self, -1, 'Close')
+        closeBtn = wx.Button(self, -1, 'OK')
 
         # bind to event
         channelRadio.Bind(wx.EVT_RADIOBOX, self.OnChannelRadio)
@@ -429,8 +430,10 @@ class CMapDlg(wx.Dialog):
         """ 参照Lutの更新.
           戻り値 -> bool. 失敗ならFalseを返す.
         """
-        if self.app:
-            self.app.Refresh()
+        if not self.ref: return
+        self.ref.lut.setTo(self.lut)
+        self.ref.update()
+        self.ref.chkNotice()
         return
 
 
@@ -448,7 +451,7 @@ class CMapDlg(wx.Dialog):
                                 "", "", 'lut file (*.lut)|*.lut|(*)|*',
                                 wx.OPEN)
         if self.lutImpDir != "":
-            fileDlg.SetDirectory(App.ConvSysToWx(self.lutImpDir))
+            fileDlg.SetDirectory(self.lutImpDir)
 
         if fileDlg.ShowModal() != wx.ID_OK: return
         inPath = fileDlg.GetPath()
@@ -478,7 +481,7 @@ class CMapDlg(wx.Dialog):
                                 "", "", 'lut file (*.lut)|*.lut|(*)|*',
                                 wx.SAVE)
         if self.lutImpDir != "":
-            fileDlg.SetDirectory(App.ConvSysToWx(self.lutImpDir))
+            fileDlg.SetDirectory(self.lutImpDir)
 
         if fileDlg.ShowModal() != wx.ID_OK: return
         outPath = fileDlg.GetPath()
@@ -487,8 +490,7 @@ class CMapDlg(wx.Dialog):
         if os.path.isfile(outPath):
             msg = 'The specified file has already existed\n  ' \
                   + outPath + '\n\nAre you sure to override ?\n'
-            msgDlg = wx.MessageDialog(None, App.ConvSysToWx(msg),
-                                      'Export colormap',
+            msgDlg = wx.MessageDialog(None, msg, 'Export colormap',
                                       wx.OK|wx.CANCEL|wx.ICON_QUESTION)
             if msgDlg.ShowModal() != wx.ID_OK: return
         try:
@@ -516,7 +518,7 @@ class CMapDlg(wx.Dialog):
         rlut.isStdLut = False
 
         self.setLut(rlut, True)
-
+        return
 
     def OnInvertBtn(self, event):
         """ Invertボタンのイベント.
@@ -533,10 +535,27 @@ class CMapDlg(wx.Dialog):
         rlut.isStdLut = False
 
         self.setLut(rlut, True)
-
+        return
 
     def OnCopyBtn(self, event):
-        pass
+        """ Copyボタンのイベント.
+         event - wx.CommandEvent.
+        """
+        if not self.glCanvas: return
+
+        if self.ref:
+            obj_id = self.ref.getID()
+        else:
+            obj_id = -1
+
+        dlg = ObjSelectDlg.ObjSelectDlg(self, exceptId=obj_id)
+        if dlg.ShowModal() != wx.ID_OK:
+            return
+        obj = dlg.getSelectedObj()
+        if not obj:
+            return
+        self.setLut(obj.lut, True)
+        return
         
     def OnResetBtn(self, event):
         """ Resetボタンのイベント.
@@ -545,29 +564,31 @@ class CMapDlg(wx.Dialog):
         if not self.glCanvas: return
         lut0 = Lut()
         self.setLut(lut0, True)
-
+        return
 
     def OnCancelBtn(self, event):
         """ Cancelボタンのイベント.
          event - wx.CommandEvent.
         """
         self.setLut(self.lut_back, True)
-        self.Hide()
+        if self.IsModal(): self.EndModal(wx.ID_OK)
+        else: self.Hide()
+        return
 
     def OnCloseBtn(self, event):
         """ Closeボタンのイベント.
          event - wx.CommandEvent.
         """
-        self.Hide()
+        if self.IsModal(): self.EndModal(wx.ID_OK)
+        else: self.Hide()
+        return
 
-
-class MyApp(wx.App):
-    def OnInit(self):
-        dlg = CMapDlg(None, None)
-        dlg.ShowModal()
-        dlg.Destroy()
-        return True
 
 if __name__ == '__main__':
-    app = MyApp()
+    app = wx.App()
+
+    dlg = CMapDlg(None, None)
+    dlg.ShowModal()
+    dlg.Destroy()
+
     app.MainLoop()

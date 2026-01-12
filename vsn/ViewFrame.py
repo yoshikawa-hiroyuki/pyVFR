@@ -547,7 +547,7 @@ class ViewFrame(wx.Frame):
                 self.pObjPropDlg.Destroy()
                 self.pObjPropDlg = None
         if not self.pObjPropDlg:
-            self.pObjPropDlg = ObjPropDlg.ObjPropDlg(obj, self)
+            self.pObjPropDlg = ObjPropDlg.ObjPropDlg(self, obj)
 
         self.pObjPropDlg.Show()
         return
