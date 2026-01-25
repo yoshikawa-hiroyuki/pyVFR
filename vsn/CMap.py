@@ -449,7 +449,7 @@ class CMapDlg(wx.Dialog):
         """
         fileDlg = wx.FileDialog(self, 'select lut file to import',
                                 "", "", 'lut file (*.lut)|*.lut|(*)|*',
-                                wx.OPEN)
+                                wx.FD_OPEN)
         if self.lutImpDir != "":
             fileDlg.SetDirectory(self.lutImpDir)
 
@@ -479,7 +479,7 @@ class CMapDlg(wx.Dialog):
         """
         fileDlg = wx.FileDialog(self, 'select lut file to export',
                                 "", "", 'lut file (*.lut)|*.lut|(*)|*',
-                                wx.SAVE)
+                                wx.FD_SAVE)
         if self.lutImpDir != "":
             fileDlg.SetDirectory(self.lutImpDir)
 

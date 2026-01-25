@@ -270,6 +270,6 @@ class Arena(gfxGroup.GfxGroup):
     
 #----------------------------------------------------------------------
 # グローバルインスタンス
-g_arena = Arena(name='ROOT', suicide=True)
-def GetArena():
-    return g_arena
+#g_arena = Arena(name='ROOT', suicide=True)
+#def GetArena():
+#    return g_arena

@@ -26,10 +26,10 @@ cam._antiAlias = True
 cam.setBgColor((0.5, 0.1, 0.1, 1.0))
 da.setCamera(cam)
 
-scn = scene.Scene('SCENE')
+scn = scene.Scene(name='SCENE')
 cam.setScene(scn)
 
-grp = gfxGroup.GfxGroup('GROUP')
+grp = gfxGroup.GfxGroup(name='GROUP')
 grp.setPickMode(gfxNode.PT_OBJECT)
 scn.addChild(grp)
 

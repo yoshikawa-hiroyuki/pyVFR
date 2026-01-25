@@ -10,6 +10,8 @@ from vfr import *
 
 import xform, XFormDlg
 import CMap
+import CMapBarDisp
+import App
 
 
 #----------------------------------------------------------------------
@@ -30,6 +32,8 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         self.xformDlg = None
         self.cmapDlg = None
         self.paramsPnl = None
+
+        self.cmapBarDisp = None
         
         self.focused = False
         self.setPickMode(gfxNode.PT_OBJECT|gfxNode.PT_BBOX)
@@ -40,6 +44,7 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
 
     def __del__(self):
         gfxGroup.GfxGroup.__del__(self)
+        return
 
     def destroy(self):
         """ destroy -- override GfxGroup.destroy
@@ -51,8 +56,12 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         if not self.cmapDlg is None:
             self.cmapDlg.Destroy()
             self.cmapDlg = None
+        if not self.cmapBarDisp is None:
+            del self.cmapBarDisp
+            self.cmapBarDisp = None
         return
 
+    #---------- type
     def isVisObj(self):
         """ do not override
         """
@@ -68,7 +77,6 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         """
         return "NoneType"
     
-
     #---------- "show" property
     @property
     def show(self):
@@ -78,8 +86,12 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
     def show(self, value):
         if not value:
             self.setRenderMode(gfxNode.RT_NONE)
+            if self.cmapBarDisp:
+                self.cmapBarDisp.setRenderMode(gfxNode.RT_NONE)
         else:
             self.setRenderMode(self.showType)
+            if self.cmapBarDisp:
+                self.cmapBarDisp.setRenderMode(gfxNode.RT_NOLIGHT)
         self.chkNotice()
         return
 
@@ -109,7 +121,31 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
             return False
         return True
 
+    #---------- color-bar
+    def getColorBar(self):
+        if not self.cmapBarDisp:
+            self.cmapBarDisp = CMapBarDisp.CMapBarDisp(ref=self)
+        return self.cmapBarDisp
+
+    def showColorBar(self, show):
+        pcb = self.getColorBar()
+        if not pcb: return
+        pcbID = pcb.getID()
+        
+        camera = App.GetVsnApp().getCamera()
+        if show:
+            if camera._front.getNodeById(pcbID):
+                return
+            camera.addToFront(pcb)
+        else:
+            if camera._front.getNodeById(pcbID):
+                camera.remFromFront(pcb)
+            else:
+                return
+        self.chkNotice()
+        return
     
+    #---------- focus
     def setFocus(self, mode):
         """ Focusの設定.
           mode - bool. True:設定, False:解除.
@@ -122,8 +158,8 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
     def updateRenderMode(self):
         self.setBboxShowMode(self.focused)
         return
-    
-        
+            
+    #---------- xform
     def updateXForm(self):
         """ XFormの更新.
          XFormのmatrixを取得して自身のmatrixに設定します.
@@ -145,6 +181,7 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         self.xformDlg.Show(show)
         return
 
+    #---------- parameter panel
     def getParamsPanel(self, parent):
         """ パラメータパネルの取得.
         """
@@ -168,6 +205,7 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         """
         return False
 
+    #---------- update
     def updateUI(self):
         """ UIの表示更新.
         """

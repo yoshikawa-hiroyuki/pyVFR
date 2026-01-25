@@ -183,6 +183,7 @@ class GfxNode(Node, Obj):
         self._useAuxPointColor = False
 
         self._shader = None
+        self._texture = None
 
         self._showBbox = False
         self._pickable = PT_NONE
@@ -590,6 +591,10 @@ class GfxNode(Node, Obj):
         # apply material
         self.applyMaterial()
 
+        # apply texture
+        if self._texture != None:
+            self._texture.enable()
+        
         # apply shader
         if self._shader != None:
             glUseProgram(self._shader.program_id)
@@ -626,6 +631,10 @@ class GfxNode(Node, Obj):
         # unapply shader
         if self._shader != None:
             glUseProgram(0)
+
+        # un-apply texture
+        if self._texture != None:
+            self._texture.disable()
 
         # un-apply material
         self.unApplyMaterial()
@@ -1251,6 +1260,14 @@ class GfxNode(Node, Obj):
         放射光係数を返す
         """
         return self._emission
+
+    def setTexture(self, tex):
+        if self._texture == tex:
+            return True
+        self._texture = tex
+        self._texture.setBbox(self._bbox[0], self._bbox[1])
+        self.notice()
+        return
 
     #-------- propagate interface --------
     def notice(self, invalidateDL =True):

@@ -8,8 +8,6 @@ Copyright(c) RIKEN, 2008-2009, All Right Reserved.
 """
 
 #----------------------------------------------------------------------
-"""アライメントタイプ"""
-(AL_LEFT, AL_RIGHT, AL_CENTER) = range(3)
 """フォント種別"""
 (FONT_LINE, FONT_HELVETICA, FONT_TIMESROMAN) = range(3)
 
@@ -74,7 +72,8 @@ class Letters(GfxNode):
         表示文字列の幅を返す
         """
         ret = vfr_impl.gfxLetters_GetTextWidth(self.font,
-                                               self.textBuf, self.spaceRate)
+                                               self.textBuf.encode('utf-8'),
+                                               self.spaceRate)
         return ret
         
     def getTextHeight(self):
@@ -145,7 +144,7 @@ class Letters(GfxNode):
                 transltd = 0.0
             else:
                 ret = vfr_impl.gfxLetters_DrawLetter(self.font,
-                                                     self.textBuf[i],
+                                                     self.textBuf[i].encode('utf-8'),
                                                      self.spaceRate)
                 transltd = transltd + ret
 

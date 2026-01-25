@@ -8,7 +8,7 @@ import sys, os
 import wx
 if not ".." in sys.path:
     sys.path = sys.path + [".."]
-import Arena
+import App
 
 
 class ObjSelectDlg(wx.Dialog):
@@ -60,7 +60,7 @@ class ObjSelectDlg(wx.Dialog):
             return
         self.listCtl.DeleteAllItems()
 
-        arena = Arena.GetArena()
+        arena = App.GetVsnApp().getArena()
         if not arena:
             return
 
@@ -89,7 +89,7 @@ class ObjSelectDlg(wx.Dialog):
         idx = self.listCtl.GetFirstSelected()
         if idx < 0:
             return None
-        arena = self.parent.getArena()
+        arena = App.GetVsnApp().getArena()
         if not arena:
             return None
         obj = arena.getObject(idx)

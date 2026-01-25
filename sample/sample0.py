@@ -24,7 +24,7 @@ cam._frustum._dist = 15.0
 cam._antiAlias = True
 da.setCamera(cam)
 
-scn = scene.Scene('SCENE')
+scn = scene.Scene(name='SCENE')
 cam.setScene(scn)
 
 cube = primitives.Cube(width=5, height=5, depth=5)

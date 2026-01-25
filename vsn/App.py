@@ -117,6 +117,13 @@ class VsnApp(wx.App):
     # equivalent to getArena()
     getScene = getArena
 
+    def getCamera(self):
+        """ ViewCameraの取得.
+          戻り値 -> ViewCamera.
+        """
+        return self._viewFrame.gfxView.camera
+
+
     @staticmethod
     def console_procedure():
         console = code.InteractiveConsole(locals())
@@ -133,9 +140,17 @@ class VsnApp(wx.App):
             with suppress_stderr():
                 self.MainLoop()
 
+#----------------------------------------------------------------------
+# グローバルインスタンス
+g_app = VsnApp()
+def GetVsnApp():
+    return g_app
 
+
+#----------------------------------------------------------------------
 if __name__ == '__main__':
-    app = VsnApp()
+    #app = VsnApp()
+    app = GetVsnApp()
     app.run_console()
     app.run()
     

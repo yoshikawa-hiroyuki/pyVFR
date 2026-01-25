@@ -385,7 +385,7 @@ class ViewFrame(wx.Frame):
         """ Fit to Selected Objectsメニューのイベント.
           event - wx.MenuEvent.
         """
-        pTgt = None
+        pTgt = self.getArena().getSelectedObj()
 
         if not GfxView.s_xformAnim or GfxView.s_xformAnimDuration <= 0.0:
             self.gfxView.normalize(pTgt)
@@ -536,6 +536,7 @@ class ViewFrame(wx.Frame):
         if dlg.ShowModal() != wx.ID_OK:
             return
         obj = dlg.getSelectedObj()
+        self.getArena().setSelectedObj(obj)
         if not obj:
             if self.pObjPropDlg:
                 self.pObjPropDlg.Hide()

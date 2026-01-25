@@ -23,6 +23,7 @@ class FrontObj(gfxGroup.GfxGroup):
         """ 初期設定.
         """
         gfxGroup.GfxGroup.__init__(self, **args)
+        return
 
     def setPosition(self, x, y):
         """ Positionを設定.
@@ -47,7 +48,7 @@ class FrontObj(gfxGroup.GfxGroup):
         if vp[2] > 0 and vp[3] > 0: asp = float(vp[2])/float(vp[3])
         glPushMatrix()
         glTranslatef(self._matrix[12]*(asp -1.0), 0.0, 0.0)
-        gfxGroup.GfxGroup.render_(transpMode)
+        gfxGroup.GfxGroup.render_(self, transpMode)
         glPopMatrix()
         return
 

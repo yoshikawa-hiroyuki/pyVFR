@@ -111,7 +111,7 @@ class PixelImage(GfxNode):
         PILモジュールのImageクラスのデータを画像データとして設定します．
         - image: Imageクラスデータ
         """
-        imgData = image.tostring()
+        imgData = image.tobytes()
         imgSize = image.size
         self.setImageData(imgData, imgSize[0], imgSize[1])
 

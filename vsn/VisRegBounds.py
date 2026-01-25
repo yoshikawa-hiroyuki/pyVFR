@@ -297,12 +297,13 @@ class VisRegBounds(VisObj):
 
 if __name__ == '__main__':
     import App
-    app = App.VsnApp()
+    app = App.GetVsnApp()
     arena = app.getArena()
     
     import numpy as np
     d = np.ndarray([10,20,30])
     bounds = VisRegBounds(name='TestBounds', data=d, lineWidth=5)
+    bounds.showColorBar(True)
     arena.addObject(bounds)
 
     #app.run_console()

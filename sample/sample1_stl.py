@@ -24,10 +24,10 @@ cam._frustum._dist = 15.0
 cam._antiAlias = True
 da.setCamera(cam)
 
-scn = scene.Scene('SCENE')
+scn = scene.Scene(name='SCENE')
 cam.setScene(scn)
 
-grp = gfxGroup.GfxGroup('GROUP')
+grp = gfxGroup.GfxGroup(name='GROUP')
 grp.setPickMode(gfxNode.PT_OBJECT)
 scn.addChild(grp)
 
