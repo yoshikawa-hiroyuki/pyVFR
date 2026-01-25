@@ -39,7 +39,7 @@ class ViewCamera(camera.Camera3D):
           fobj - 削除するオブジェクト
         """
         if self._front is None: return False
-        return self.remChild(fobj)
+        return self._front.remChild(fobj)
     
     def dragRot(self, dx, dy):
         """ マウスドラッグによる回転.

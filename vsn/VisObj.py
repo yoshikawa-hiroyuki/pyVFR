@@ -57,6 +57,7 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
             self.cmapDlg.Destroy()
             self.cmapDlg = None
         if not self.cmapBarDisp is None:
+            self.cmapBarDisp.destroy()
             del self.cmapBarDisp
             self.cmapBarDisp = None
         return

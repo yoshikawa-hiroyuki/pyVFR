@@ -5,7 +5,7 @@ import sys
 import VisObj
 import CMap
 import EditPropDlg
-import CMap
+import App
 
 
 #----------------------------------------------------------------------
@@ -154,6 +154,8 @@ class ObjPropDlg(wx.Dialog):
         
         self._visObj.destroy()
         self._visObj = None
+        App.GetVsnApp().getArena().setSelectedObj(None)
+        
         if self.parent:
             self.parent.Refresh()
         self.Close()
