@@ -29,8 +29,12 @@ class VisRegBounds(VisObj):
         if data is None and bbox is None and coord is None:
             raise ValueError("The required argument is not given.")
         VisObj.__init__(self, **args)
-        if 'lineWidth' in args:
-            self.setLineWidth(args['lineWidth'])
+        try:
+            lw = float(args['lineWidth'])
+            if lw > 0.0:
+                self.setLineWidth(args['lineWidth'])
+        except:
+            pass
         
         self.showType = gfxNode.RT_WIRE
         self.mode = VisRegBounds.BOUNDS_NONE
@@ -284,7 +288,7 @@ class VisRegBounds(VisObj):
         self.addChild(ls)
 
         # (x0, y1, z1) - (x0, y0, z1)
-        ls = lines.LineStrip(lname='RegBounds_LineStrip', ocalMaterial=False)
+        ls = lines.LineStrip(lname='RegBounds_LineStrip', localMaterial=False)
         ls.alcData(nV=ny)
         for i in range(ny):
             ls._verts[i][:] = coord[-1, i, 0, :]
