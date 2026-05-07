@@ -218,10 +218,10 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
             self.updatePP()
         return
     
-    def update(self):
+    def update(self, **args):
         """ 表示更新(派生クラスで実装).
         """
         self.notice()
-        return
+        return True
     
     

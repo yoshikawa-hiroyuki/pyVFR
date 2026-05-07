@@ -156,7 +156,7 @@ class Mesh2D(GfxNode):
         if self._normalMode == AT_WHOLE:
             self.alcData(nN = 1)
             v1, v2 = Vec3(), Vec3()
-            x = vec3(self._verts[nVerts -1]) - Vec3(self._verts[0])
+            x = Vec3(self._verts[nVerts -1]) - Vec3(self._verts[0])
             v1.m_v[0:] = x[0:]
             x = Vec3(self._verts[self.meshSize.x -1]) \
                 - Vec3(self._verts[self.meshSize.x * (self.meshSize.y -1)])

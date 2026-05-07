@@ -3,7 +3,8 @@
 """
 VisRegBounds
 """
-import sys
+import sys, os
+import numpy as np
 if not ".." in sys.path:
     sys.path = sys.path + [".."]
 from vfr import *
@@ -23,12 +24,14 @@ class VisRegBounds(VisObj):
         """
         args: data =None, bbox =None, coord =None, lineWidth =1.0
         """
+        VisObj.__init__(self, **args)
+        self.showType = gfxNode.RT_WIRE
+        self.mode = VisRegBounds.BOUNDS_NONE
+        self._lineWidthTxt = None
+        
         data = None  if not 'data'  in args else args['data']
         bbox = None  if not 'bbox'  in args else args['bbox']
         coord = None if not 'coord' in args else args['coord']
-        if data is None and bbox is None and coord is None:
-            raise ValueError("The required argument is not given.")
-        VisObj.__init__(self, **args)
         try:
             lw = float(args['lineWidth'])
             if lw > 0.0:
@@ -36,19 +39,8 @@ class VisRegBounds(VisObj):
         except:
             pass
         
-        self.showType = gfxNode.RT_WIRE
-        self.mode = VisRegBounds.BOUNDS_NONE
-        
-        self._lineWidthTxt = None
-
-        if not coord is None:
-            self.updateCoord(coord)
-        elif not bbox is None:
-            self.updateBbox(bbox)
-        elif not data is None:
-            self.updateData(data)
-        self.generateBbox()
-        self.show = True
+        if not data is None or not bbox is None or not coord is None:
+            self.update(**args)
         return
 
     def getVisObjType(self):
@@ -107,20 +99,44 @@ class VisRegBounds(VisObj):
             self.setLineWidth(val)
             self.chkNotice()
         return
+
+    def update(self, **args):
+        data = None  if not 'data'  in args else args['data']
+        bbox = None  if not 'bbox'  in args else args['bbox']
+        coord = None if not 'coord' in args else args['coord']
+        if data is None and bbox is None and coord is None:
+            return False
+
+        self.show = False
+        if not coord is None:
+            self.updateCoord(coord)
+        elif not bbox is None:
+            self.updateBbox(bbox)
+        elif not data is None:
+            self.updateData(data)
+
+        self.generateBbox()
+        self.show = True
+        return True
     
     def updateData(self, data):
+        if isinstance(data, np.ndarray):
+            pdata = data
+        else:
+            raise Exception("data type is not property")
+        
         self.remAllChildren()
         try:
-            nd = len(data.shape)
+            nd = len(pdata.shape)
         except Exception as e:
-            raise
+            raise Exception("data type is not property")
         
         ls = lines.Lines(name='RegBounds_Lines', localMaterial=False)
         if nd >= 3:
             ls.alcData(nV=24)
-            x = data.shape[2] - 1.0
-            y = data.shape[1] - 1.0
-            z = data.shape[0] - 1.0
+            x = pdata.shape[2] - 1.0
+            y = pdata.shape[1] - 1.0
+            z = pdata.shape[0] - 1.0
             pts = ((0.0, 0.0, 0.0), (x, 0.0, 0.0), (x, y, 0.0), (0.0, y, 0.0),
                    (0.0, 0.0, z), (x, 0.0, z), (x, y, z), (0.0, y, z))
             idcs = (0,1,1,2,2,3,3,0, 0,4,1,5,2,6,3,7, 4,5,5,6,6,7,7,4)
@@ -129,8 +145,8 @@ class VisRegBounds(VisObj):
                 continue
         elif nd == 2:
             ls.alcData(nV=8)
-            x = data.shape[1] - 1.0
-            y = data.shape[0] - 1.0
+            x = pdata.shape[1] - 1.0
+            y = pdata.shape[0] - 1.0
             pts = ((0.0, 0.0, 0.0), (x, 0.0, 0.0), (x, y, 0.0), (0.0, y, 0.0))
             idcs = (0,1,1,2,2,3,3,0)
             for i in range(len(idcs)):
@@ -138,7 +154,7 @@ class VisRegBounds(VisObj):
                 continue
         elif nd == 1:
             ls.alcData(nV=2)
-            x = data.shape[0] - 1.0
+            x = pdata.shape[0] - 1.0
             pts = ((0.0, 0.0, 0.0), (x, 0.0, 0.0))
             ls._verts[0][:] = pts[idcs[0]][:]
             ls._verts[1][:] = pts[idcs[1]][:]
@@ -300,13 +316,17 @@ class VisRegBounds(VisObj):
 
 
 if __name__ == '__main__':
+    from pySPH import SPH
     import App
     app = App.GetVsnApp()
     arena = app.getArena()
     
-    import numpy as np
-    d = np.ndarray([10,20,30])
-    bounds = VisRegBounds(name='TestBounds', data=d, lineWidth=5)
+    files = [f"p_{i:03d}.sph" for i in range(1, 11)]
+    sph = SPH.SPH()
+    sph.load(os.path.join("data", files[0]))
+
+    bounds = VisRegBounds(name='TestBounds', data=sph.dataIndexed(),
+                          lineWidth=5)
     bounds.showColorBar(True)
     arena.addObject(bounds)
 
