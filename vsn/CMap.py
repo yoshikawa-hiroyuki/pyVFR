@@ -325,6 +325,9 @@ class CMapDlg(wx.Dialog):
         self.ref = ref
         self.lut = Lut()
         self.lut_back = Lut()
+        if self.ref:
+            self.lut.setTo(self.ref.lut)
+            self.lut_back.setTo(self.ref.lut)
         self.lutImpDir = ""
 
         # prepare objects
@@ -431,8 +434,7 @@ class CMapDlg(wx.Dialog):
           戻り値 -> bool. 失敗ならFalseを返す.
         """
         if not self.ref: return
-        self.ref.lut.setTo(self.lut)
-        self.ref.update()
+        self.ref.update(lut=self.lut)
         self.ref.chkNotice()
         return
 

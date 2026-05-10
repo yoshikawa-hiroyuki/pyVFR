@@ -57,8 +57,7 @@ class VisRegOrthoSlice(VisObj):
                 self.p_data = data[:, :, :, 0]
             else:
                 self.p_data = data
-            self.lut.minVal = self.p_data.min()
-            self.lut.maxVal = self.p_data.max()
+            self.setMinMax([self.p_data.min(), self.p_data.max()])
         else:
             return False
         self._needUpdate = True
@@ -69,7 +68,7 @@ class VisRegOrthoSlice(VisObj):
             self._needUpdate = True
         try:
             minVal = float(minmax[0])
-            manVal = float(minmax[1])
+            maxVal = float(minmax[1])
         except:
             return False
         if self.lut.minVal == minVal and self.lut.maxVal == maxVal:
@@ -80,13 +79,14 @@ class VisRegOrthoSlice(VisObj):
             maxVal = bkup
         self.lut.minVal = minVal
         self.lut.maxVal = maxVal
+        self.updateUI()
         self._needUpdate = True
         return True
 
     def setCoord(self, coord, forceUpd=True):
         if forceUpd:
             self._needUpdate = True
-        dims = None if not self.p_data else self.p_data.shape[0:3]
+        dims = None if self.p_data is None else self.p_data.shape[0:3]
         try:
             cdims = coord.shape[0:3]
             if not dims:
@@ -103,14 +103,14 @@ class VisRegOrthoSlice(VisObj):
     def setCoordByBbox(self, bbox, forceUpd=True):
         if forceUpd:
             self._needUpdate = True
-        dims = None if not self.p_data else self.p_data.shape
+        dims = None if self.p_data is None else self.p_data.shape
         if not dims: return False
         try:
             Zg, Yg, Xg = np.mgrid[
-                bbox[0][0]:bbox[1][0]:complex(dims[0]),
+                bbox[0][2]:bbox[1][2]:complex(dims[0]),
                 bbox[0][1]:bbox[1][1]:complex(dims[1]),
-                bbox[0][2]:bbox[1][2]:complex(dims[2])]
-            self.p_coord = np.stack([Zg, Yg, Xg], axis=-1)
+                bbox[0][0]:bbox[1][0]:complex(dims[2])]
+            self.p_coord = np.stack([Xg, Yg, Zg], axis=-1)
             self._needUpdate = True
         except:
             return False
@@ -123,11 +123,14 @@ class VisRegOrthoSlice(VisObj):
         if dims is None:
             return False
         try:
+            gro = [o_p[0][0] + o_p[1][0]*(dims[2]-1),
+                   o_p[0][1] + o_p[1][1]*(dims[1]-1),
+                   o_p[0][2] + o_p[1][2]*(dims[0]-1)]
             Zg, Yg, Xg = np.mgrid[
-                o_p[0][0]:o_p[1][0]*(dims[0]-1):complex(dims[0]),
-                o_p[0][1]:o_p[1][1]*(dims[1]-1):complex(dims[1]),
-                o_p[0][2]:o_p[1][2]*(dims[2]-1):complex(dims[2])]
-            self.p_coord = np.stack([Zg, Yg, Xg], axis=-1)
+                o_p[0][2]:gro[2]:complex(dims[0]),
+                o_p[0][1]:gro[1]:complex(dims[1]),
+                o_p[0][0]:gro[0]:complex(dims[2])]
+            self.p_coord = np.stack([Xg, Yg, Zg], axis=-1)
             self._needUpdate = True
         except:
             return False
@@ -158,8 +161,6 @@ class VisRegOrthoSlice(VisObj):
         return True
 
     def update(self, **args):
-        self.show = False
-
         # check initialized
         if not self._mesh:
             return False
@@ -170,6 +171,7 @@ class VisRegOrthoSlice(VisObj):
         coord = None if not 'coord' in args else args['coord']
         bbox = None if not 'bbox' in args else args['bbox']
         o_p = None if not 'orgPitch' in args else args['orgPitch']
+        lut = None if not 'lut' in args else args['lut']
 
         slicePlane = -1 if not 'slicePlane' in args else args['slicePlane']
         sliceIndex = -1 if not 'sliceIndex' in args else args['sliceIndex']
@@ -188,6 +190,9 @@ class VisRegOrthoSlice(VisObj):
             self.setCoordByBbox(bbox, False)
         elif not o_p is None:
             self.setCoordByOrgPitch(o_p, False)
+        if not lut is None:
+            self.lut.setTo(lut)
+            self._needUpdate = True
         self.setSliceParam(slicePlane, sliceIndex, False)
         self.setShowMode(showMap, showMeshLine, False)
         if lineWidth > 0.0:
@@ -197,23 +202,23 @@ class VisRegOrthoSlice(VisObj):
             return True
         
         # update mesh coord and data
+        p_data = None if self.p_data is None else self.p_data
+
         if self.p_coord is None:
             return False
+
         dims = self.p_coord.shape
         if self._slicePlane == VisRegOrthoSlice.S_Za:
-            M, N, S = dims[1], dims[2], dims[0]
+            S = dims[0]
         elif self._slicePlane == VisRegOrthoSlice.S_Xa:
-            M, N, S = dims[0], dims[1], dims[2]
+            S = dims[2]
         else: # S_Ya
-            M, N, S = dims[0], dims[2], dims[1]
-            
+            S = dims[1]
         if self._sliceIndex < 0:
             self._sliceIndex = int(S / 2)
         elif self._sliceIndex >= S:
             self._sliceIndex = S -1
-
-        p_data = None if self.p_data is None else self.p_data
-
+            
         if self._slicePlane == VisRegOrthoSlice.S_Za:
             cslice = self.p_coord[self._sliceIndex, :, :, :]
             if not p_data is None:
@@ -227,6 +232,7 @@ class VisRegOrthoSlice(VisObj):
             if not p_data is None:
                 dslice = p_data[:, self._sliceIndex, :]
 
+        M, N = (cslice.shape[0], cslice.shape[1])
         self._mesh.setMeshSize(M, N)
         for j in range(N):
             for i in range(M):
@@ -251,7 +257,6 @@ class VisRegOrthoSlice(VisObj):
             self.showType += gfxNode.RT_SMOOTH
 
         self.generateBbox()
-        self.show = True
         self._needUpdate = False
         return True
     
@@ -266,7 +271,7 @@ class VisRegOrthoSlice(VisObj):
         sizerH = wx.BoxSizer()
         sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
         sizerH.Add(wx.StaticText(self.paramsPnl, label='slice plane'))
-        choices = ["IJ", "KI", "JK"]
+        choices = ["XY", "XZ", "YZ"]
         for i, choice in enumerate(choices):
             style = wx.RB_GROUP if i == 0 else 0
             rb = wx.RadioButton(self.paramsPnl, label=choice, style=style)
@@ -323,6 +328,7 @@ class VisRegOrthoSlice(VisObj):
         self._showMeshLineChk.Bind(wx.EVT_CHECKBOX, self.OnShowMeshLineChk)
 
         # line_width
+        sizerH.Add(wx.StaticText(self.paramsPnl, label=' width'), border=3)
         self._lineWidthTxt = wx.TextCtrl(self.paramsPnl, value='1.0', \
                                          style=wx.TE_PROCESS_ENTER)
         sizerH.Add(self._lineWidthTxt, flag=wx.EXPAND|wx.ALL, proportion=1, \
@@ -390,6 +396,7 @@ class VisRegOrthoSlice(VisObj):
             return
         
         if self.setSliceParam(slicePlane=new_sliceAxs):
+            self._sliceIndexSld.SetRange(0, self.p_data.shape[self._slicePlane])
             if self.update():
                 self.chkNotice()
         return
@@ -479,6 +486,7 @@ class VisRegOrthoSlice(VisObj):
 
 if __name__ == '__main__':
     from pySPH import SPH
+    from VisRegBounds import VisRegBounds
     import App
     app = App.GetVsnApp()
     arena = app.getArena()
@@ -486,10 +494,22 @@ if __name__ == '__main__':
     files = [f"p_{i:03d}.sph" for i in range(1, 11)]
     sph = SPH.SPH()
     sph.load(os.path.join("data", files[-1]))
+    print(f"dims={sph.dims}")
+    print(f"org={sph.org}")
+    print(f"pitch={sph.pitch}")
+    gro = [sph.org[0] + sph.pitch[0]*(sph.dims[0]-1),
+           sph.org[1] + sph.pitch[1]*(sph.dims[1]-1),
+           sph.org[2] + sph.pitch[2]*(sph.dims[2]-1)]
+    print(f"gro={gro}")
 
     oslicer = VisRegOrthoSlice(name='TestOrthoSlie', data=sph.dataIndexed(),
-                               orgPitch=[sph.org, sph.pitch])
+    #                           orgPitch=[sph.org, sph.pitch])
+                               bbox=[sph.org, gro])
     arena.addObject(oslicer)
+
+    bounds = VisRegBounds(name='TestBounds', data=sph.dataIndexed(),
+                          orgPitch=[sph.org, sph.pitch])
+    arena.addObject(bounds)
 
     #app.run_console()
     app.run(debug=True)

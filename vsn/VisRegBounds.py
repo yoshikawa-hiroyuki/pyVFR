@@ -101,25 +101,26 @@ class VisRegBounds(VisObj):
         return
 
     def update(self, **args):
+        self.show = False
         data = None  if not 'data'  in args else args['data']
+        o_p = None   if not 'orgPitch' in args else args['orgPitch']
         bbox = None  if not 'bbox'  in args else args['bbox']
         coord = None if not 'coord' in args else args['coord']
         if data is None and bbox is None and coord is None:
             return False
 
-        self.show = False
         if not coord is None:
             self.updateCoord(coord)
         elif not bbox is None:
             self.updateBbox(bbox)
         elif not data is None:
-            self.updateData(data)
+            self.updateData(data, o_p)
 
         self.generateBbox()
         self.show = True
         return True
     
-    def updateData(self, data):
+    def updateData(self, data, o_p=None):
         if isinstance(data, np.ndarray):
             pdata = data
         else:
@@ -130,24 +131,35 @@ class VisRegBounds(VisObj):
             nd = len(pdata.shape)
         except Exception as e:
             raise Exception("data type is not property")
-        
+
         ls = lines.Lines(name='RegBounds_Lines', localMaterial=False)
         if nd >= 3:
             ls.alcData(nV=24)
+            x0, y0, z0 = (0.0, 0.0, 0.0)
             x = pdata.shape[2] - 1.0
             y = pdata.shape[1] - 1.0
             z = pdata.shape[0] - 1.0
-            pts = ((0.0, 0.0, 0.0), (x, 0.0, 0.0), (x, y, 0.0), (0.0, y, 0.0),
-                   (0.0, 0.0, z), (x, 0.0, z), (x, y, z), (0.0, y, z))
+            if not o_p is None and len(o_p[0]) >= 3:
+                x0, y0, z0 = (o_p[0][0], o_p[0][1], o_p[0][2])
+                x = x0 + o_p[1][0]*(pdata.shape[2] - 1)
+                y = y0 + o_p[1][1]*(pdata.shape[1] - 1)
+                z = z0 + o_p[1][2]*(pdata.shape[0] - 1)
+            pts = ((x0, y0, z0), (x, y0, z0), (x, y, z0), (x0, y, z0),
+                   (x0, y0, z ), (x, y0, z ), (x, y, z ), (x0, y, z ))
             idcs = (0,1,1,2,2,3,3,0, 0,4,1,5,2,6,3,7, 4,5,5,6,6,7,7,4)
             for i in range(len(idcs)):
                 ls._verts[i][:] = pts[idcs[i]][:]
                 continue
         elif nd == 2:
             ls.alcData(nV=8)
+            x0, y0 = (0.0, 0.0)
             x = pdata.shape[1] - 1.0
             y = pdata.shape[0] - 1.0
-            pts = ((0.0, 0.0, 0.0), (x, 0.0, 0.0), (x, y, 0.0), (0.0, y, 0.0))
+            if not o_p is None and len(o_p[0]) >= 2:
+                x0, y0 = (o_p[0][0], o_p[0][1])
+                x = x0 + o_p[1][0]*(pdata.shape[1] - 1)
+                y = y0 + o_p[1][1]*(pdata.shape[0] - 1)
+            pts = ((x0, y0, 0.0), (x, y0, 0.0), (x, y, 0.0), (x0, y, 0.0))
             idcs = (0,1,1,2,2,3,3,0)
             for i in range(len(idcs)):
                 ls._verts[i][:] = pts[idcs[i]][:]
@@ -155,7 +167,10 @@ class VisRegBounds(VisObj):
         elif nd == 1:
             ls.alcData(nV=2)
             x = pdata.shape[0] - 1.0
-            pts = ((0.0, 0.0, 0.0), (x, 0.0, 0.0))
+            if not o_p is None and len(o_p[0]) >= 1:
+                x0 = o_p[0][0]
+                x = x0 + o_p[1][0]*(pdata.shape[0] - 1)
+            pts = ((x0, 0.0, 0.0), (x, 0.0, 0.0))
             ls._verts[0][:] = pts[idcs[0]][:]
             ls._verts[1][:] = pts[idcs[1]][:]
         else:
@@ -326,7 +341,7 @@ if __name__ == '__main__':
     sph.load(os.path.join("data", files[0]))
 
     bounds = VisRegBounds(name='TestBounds', data=sph.dataIndexed(),
-                          lineWidth=5)
+                          orgPitch=[sph.org, sph.pitch], lineWidth=5)
     bounds.showColorBar(True)
     arena.addObject(bounds)
 

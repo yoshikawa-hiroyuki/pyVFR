@@ -30,7 +30,6 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         self.lut = lut.Lut()
 
         self.xformDlg = None
-        self.cmapDlg = None
         self.paramsPnl = None
 
         self.cmapBarDisp = None
@@ -53,9 +52,6 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         if not self.xformDlg is None:
             self.xformDlg.Destroy()
             self.xformDlg = None
-        if not self.cmapDlg is None:
-            self.cmapDlg.Destroy()
-            self.cmapDlg = None
         if not self.cmapBarDisp is None:
             self.cmapBarDisp.destroy()
             del self.cmapBarDisp
@@ -93,7 +89,6 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
             self.setRenderMode(self.showType)
             if self.cmapBarDisp:
                 self.cmapBarDisp.setRenderMode(gfxNode.RT_NOLIGHT)
-        self.chkNotice()
         return
 
     #---------- "lighting" property
@@ -108,9 +103,11 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         if not self.canLighting():
             return
         if value:
-            self.showType = self.showType & (not gfxNode.RT_NOLIGHT)
+            # set RT_NOLIGHT-bit to 0
+            self.showType &= ~gfxNode.RT_NOLIGHT
         else:
-            self.showType = self.showType & gfxNode.RT_NOLIGHT
+            # set RT_NOLIGHT-bit to 1
+            self.showType |=  gfxNode.RT_NOLIGHT
         if self.show:
             self.setRenderMode(self.showType)
         return
@@ -212,8 +209,6 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         """
         if self.xformDlg:
             self.xformDlg.update()
-        if self.cmapDlg:
-            self.cmapDlg.setLut(self.lut)
         if self.paramsPnl:
             self.updatePP()
         return

@@ -164,12 +164,14 @@ class ObjPropDlg(wx.Dialog):
     def OnShowChk(self, event):
         if not self._visObj: return
         self._visObj.show = self.showChk.GetValue()
+        self._visObj.chkNotice()
         return
 
     def OnLightingChk(self, event):
         if not self._visObj: return
         if not self.lightingChk: return
         self._visObj.lighting = self.lightingChk.GetValue()
+        self._visObj.chkNotice()
         return
 
     def OnXFormBtn(self, event):

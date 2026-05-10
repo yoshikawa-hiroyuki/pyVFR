@@ -88,14 +88,15 @@ class Lut(object):
         self.isStdLut = False
         return True
 
-    def setTo(self, lut):
+    def setTo(self, lut, withRange=False):
         """
         代入
         """
         if not self.alcEntry(lut.numEntry):
             raise AttributeError('alloc failed.')
-        self.minVal = lut.minVal
-        self.maxVal = lut.maxVal
+        if withRange:
+            self.minVal = lut.minVal
+            self.maxVal = lut.maxVal
         self.entry = lut.entry.copy()
         self.isStdLut = lut.isStdLut
         
