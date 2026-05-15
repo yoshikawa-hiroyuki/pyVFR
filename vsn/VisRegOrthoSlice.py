@@ -160,6 +160,13 @@ class VisRegOrthoSlice(VisObj):
             self._needUpdate = True
         return True
 
+    def setBaseColor(self, color):
+        """ setBaseColor -- override VisObj.setRenderMode
+        """
+        self._colors[0][0:3] = color[0:3]
+        self.notice()
+        return
+
     def update(self, **args):
         # check initialized
         if not self._mesh:

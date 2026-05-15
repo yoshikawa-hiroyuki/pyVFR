@@ -133,11 +133,14 @@ class EditPropDlg(wx.Dialog):
         """
         if not self._visObj: return
 
+        # color
+        self._visObj.setBaseColor([1.0, 1.0, 1.0])
+
         # opacity
-        self._visObj._colors[0][3] = 1.0
+        self._visObj.setBaseOpac(1.0)
 
         # hilight
-        self._visObj.hilight = 0.0
+        self._visObj.setHilight(0.0)
 
         # update
         self.update()
@@ -159,8 +162,9 @@ class EditPropDlg(wx.Dialog):
         if not obj:
             return
 
-        self._visObj._colors[0][3] = obj._colors[0][3]
-        self._visObj.hilight = obj.hilight
+        self._visObj.setBaseColor(obj._colors[0][0:3])
+        self._visObj.setBaseOpac(obj._colors[0][3])
+        self._visObj.setHilight(obj.hilight)
 
         self.update()
         self._visObj.notice()
@@ -184,8 +188,7 @@ class EditPropDlg(wx.Dialog):
         colData = dlg.GetColourData()
         c = colData.GetColour()
         color = [c.Red()/255.0, c.Green()/255.0, c.Blue()/255.0]
-        self._visObj._colors[0][0:3] = color[:]
-        self._visObj.notice()
+        self._visObj.setBaseColor(color[:])
         
         self._visObj.chkNotice()
         return
@@ -200,8 +203,7 @@ class EditPropDlg(wx.Dialog):
         self.opacTxt.SetValue(str(val))
         
         opac = float(val/100.0)
-        self._visObj._colors[0][3] = opac
-        self._visObj.notice()
+        self._visObj.setBaseOpac(opac)
         
         self._visObj.chkNotice()
         return
@@ -224,8 +226,7 @@ class EditPropDlg(wx.Dialog):
         self.opacSlider.SetValue(val)
 
         opac = float(val/100.0)
-        self._visObj._colors[0][3] = opac
-        self._visObj.notice()
+        self._visObj.setBaseOpac(opac)
         
         self._visObj.chkNotice()
         return
@@ -240,8 +241,7 @@ class EditPropDlg(wx.Dialog):
         self.hilightTxt.SetValue(str(val))
 
         hilight = float(val/100.0)
-        self._visObj.hilight = hilight
-        self._visObj.notice()
+        self._visObj.setHilight(hilight)
         
         self._visObj.chkNotice()
         return
@@ -264,8 +264,7 @@ class EditPropDlg(wx.Dialog):
         self.hilightSlider.SetValue(val)
 
         hilight = float(val/100.0)
-        self._visObj.hilight = hilight
-        self._visObj.notice()
+        self._visObj.setHilight(hilight)
         
         self._visObj.chkNotice()
         return
@@ -276,8 +275,10 @@ class EditPropDlg(wx.Dialog):
         """
         if not self._visObj: return
 
-        self._visObj._colors[0][:] = self.bkupColor[:]
-        self._visObj.hilight = self.bkupHilight
+        self._visObj.setBaseColor(self.bkupColor[0:3])
+        self._visObj.setBaseOpac(self.bkupColor[3])
+        self._visObj.setHilight(self.bkupHilight)
+        self._visObj.chkNotice()
 
         if self.IsModal(): self.EndModal(wx.ID_CANCEL)
         else: self.Hide()
@@ -309,4 +310,3 @@ if __name__ == '__main__':
     dlg = EditPropDlg(None, dummy)
     dlg.Show()
     app.MainLoop()
-    

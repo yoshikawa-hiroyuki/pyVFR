@@ -58,6 +58,35 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
             self.cmapBarDisp = None
         return
 
+    def setRenderMode(self, rm):
+        """ setRenderMode -- override GfxNode.setRenderMode
+        """
+        gfxGroup.GfxGroup.setRenderMode(self, rm)
+        for c in self._children:
+            c.setRenderMode(rm)
+        return
+
+    def setBaseColor(self, color):
+        self._colors[0][0:3] = color[0:3]
+        for c in self._children:
+            c._colors[0][0:3] = color[0:3]
+            c.notice()
+        return
+
+    def setBaseOpac(self, opac):
+        self._colors[0][3] = opac
+        for c in self._children:
+            c._colors[0][3] = opac
+            c.notice()
+        return
+
+    def setHilight(self, hilight):
+        self.hilight = hilight
+        for c in self._children:
+            c._specular[0:3] = [hilight] * 3
+            c.notice()
+        return
+
     #---------- type
     def isVisObj(self):
         """ do not override
