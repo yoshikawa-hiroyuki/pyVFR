@@ -19,8 +19,10 @@ class ObjPropDlg(wx.Dialog):
           visObj - VisObj. プロパティを定する対象.
           parent - wx.Window. 親widget
         """
-        wx.Dialog.__init__(self, parent, -1, "Set VisObj properties")
+        wx.Dialog.__init__(self, parent, -1, "VisObj properties")
         self._visObj = visObj
+        if visObj:
+            self.SetTitle(f"{visObj.getVisObjType()}:{visObj.getName()}")
         self.parent = parent
 
         sizerTop = wx.BoxSizer(orient=wx.VERTICAL)

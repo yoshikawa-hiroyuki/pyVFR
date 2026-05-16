@@ -47,7 +47,7 @@ class VisRegOrthoSlice(VisObj):
     def getVisObjType(self):
         return "OrthoSlice"
 
-    def setData(self, data, forceUpd=True):
+    def setData(self, data, forceUpd=True, minmaxUpd=True):
         if forceUpd:
             self._needUpdate = True
         if self.p_data is data:
@@ -57,7 +57,8 @@ class VisRegOrthoSlice(VisObj):
                 self.p_data = data[:, :, :, 0]
             else:
                 self.p_data = data
-            self.setMinMax([self.p_data.min(), self.p_data.max()])
+            if minmaxUpd:
+                self.setMinMax([self.p_data.min(), self.p_data.max()])
         else:
             return False
         self._needUpdate = True
@@ -182,8 +183,8 @@ class VisRegOrthoSlice(VisObj):
 
         slicePlane = -1 if not 'slicePlane' in args else args['slicePlane']
         sliceIndex = -1 if not 'sliceIndex' in args else args['sliceIndex']
-        showMap = True if not 'showMap' in args else args['showMap']
-        showMeshLine = False if not 'showMeshLine' in args \
+        showMap = self._showMap if not 'showMap' in args else args['showMap']
+        showMeshLine = self._showMeshLine if not 'showMeshLine' in args \
             else args['showMeshLine']
         lineWidth = -1.0 if not 'lineWidth' in args else args['lineWidth']
 
@@ -256,12 +257,13 @@ class VisRegOrthoSlice(VisObj):
                 continue # for j
             
         # update mesh show mode
-        self.showType = gfxNode.RT_NONE
+        showType = gfxNode.RT_NONE
         if self._showMeshLine:
-            self.showType = gfxNode.RT_WIRE
-            self._mesh.setAuxLineColor(True. self._colors[0])
+            showType = gfxNode.RT_WIRE
+            self._mesh.setAuxLineColor(True, self._colors[0])
         if self._showMap and not p_data is None:
-            self.showType += gfxNode.RT_SMOOTH
+            showType += gfxNode.RT_SMOOTH
+        self._mesh.setRenderMode(showType)
 
         self.generateBbox()
         self._needUpdate = False
@@ -460,18 +462,16 @@ class VisRegOrthoSlice(VisObj):
         val = self._showMapChk.GetValue()
         if val == self._showMap:
             return
-        if self.setShowMode(showMap=val):
-            if self.update():
-                self.chkNotice()
+        if self.update(showMap=val):
+            self.chkNotice()
         return
 
     def OnShowMeshLineChk(self, event):
         val = self._showMeshLineChk.GetValue()
         if val == self._showMeshLine:
             return
-        if self.setShowMode(showMeshLine=val):
-            if self.update():
-                self.chkNotice()
+        if self.update(showMeshLine=val):
+            self.chkNotice()
         return
 
     def OnLineWidthTxt(self, event):
@@ -509,7 +509,7 @@ if __name__ == '__main__':
            sph.org[2] + sph.pitch[2]*(sph.dims[2]-1)]
     print(f"gro={gro}")
 
-    oslicer = VisRegOrthoSlice(name='TestOrthoSlie', data=sph.dataIndexed(),
+    oslicer = VisRegOrthoSlice(name='TestOrthoSlice', data=sph.dataIndexed(),
     #                           orgPitch=[sph.org, sph.pitch])
                                bbox=[sph.org, gro])
     arena.addObject(oslicer)
