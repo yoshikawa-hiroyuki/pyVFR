@@ -64,26 +64,6 @@ class VisRegOrthoSlice(VisObj):
         self._needUpdate = True
         return True
 
-    def setMinMax(self, minmax, forceUpd=True):
-        if forceUpd:
-            self._needUpdate = True
-        try:
-            minVal = float(minmax[0])
-            maxVal = float(minmax[1])
-        except:
-            return False
-        if self.lut.minVal == minVal and self.lut.maxVal == maxVal:
-            return True
-        if minVal > maxVal:
-            bkup = minVal
-            minVal = maxVal
-            maxVal = bkup
-        self.lut.minVal = minVal
-        self.lut.maxVal = maxVal
-        self.updateUI()
-        self._needUpdate = True
-        return True
-
     def setCoord(self, coord, forceUpd=True):
         if forceUpd:
             self._needUpdate = True

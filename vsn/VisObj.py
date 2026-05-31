@@ -39,6 +39,8 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         self.setAuxLineColor(False, [1.0, 0.0, 0.0, 0.5])
         self.setBboxColor([1.0, 0.0, 0.0, 0.5])
         self.setBboxWidth(2.5)
+
+        self._needUpdate = True
         return
 
     def __del__(self):
@@ -86,6 +88,26 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
             c._specular[0:3] = [hilight] * 3
             c.notice()
         return
+
+    def setMinMax(self, minmax, forceUpd=True):
+        if forceUpd:
+            self._needUpdate = True
+        try:
+            minVal = float(minmax[0])
+            maxVal = float(minmax[1])
+        except:
+            return False
+        if self.lut.minVal == minVal and self.lut.maxVal == maxVal:
+            return True
+        if minVal > maxVal:
+            bkup = minVal
+            minVal = maxVal
+            maxVal = bkup
+        self.lut.minVal = minVal
+        self.lut.maxVal = maxVal
+        self.updateUI()
+        self._needUpdate = True
+        return True
 
     #---------- type
     def isVisObj(self):
@@ -232,7 +254,6 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         """
         return False
 
-    #---------- update
     def updateUI(self):
         """ UIの表示更新.
         """
@@ -242,10 +263,13 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
             self.updatePP()
         return
     
+    #---------- update
     def update(self, **args):
         """ 表示更新(派生クラスで実装).
         """
-        self.notice()
+        if self._needUpdate:
+            self.notice()
+            self._needUpdate = False
         return True
     
     
