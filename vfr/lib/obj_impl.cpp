@@ -196,7 +196,7 @@ void ObjData::generateBbox() {
     if ( _bbox[1][1] < _verts[i][1] ) _bbox[1][1] = _verts[i][1];
     if ( _bbox[0][2] > _verts[i][2] ) _bbox[0][2] = _verts[i][2];
     if ( _bbox[1][2] < _verts[i][2] ) _bbox[1][2] = _verts[i][2];
-  } // end of f or(i)
+  } // end of for(i)
 }
 
 
