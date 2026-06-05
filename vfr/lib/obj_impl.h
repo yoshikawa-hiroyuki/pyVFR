@@ -7,7 +7,7 @@ Copyright(c) RIKEN, 2008-2009, All Right Reserved.
 #define _OBJ_IMPL_H_
 
 #include "vfr_impl.h"
-#include "../util/utilMath.h"
+#include "util/utilMath.h"
 
 
 VFR_CLASS ObjData {

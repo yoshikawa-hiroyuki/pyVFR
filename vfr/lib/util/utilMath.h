@@ -95,25 +95,25 @@ namespace CES {
     Mat4(const T* org) {*this = org;}
     
     void operator=(const Mat4<T>& org) {
-      for ( register size_t i = 0; i < 16; i++ )
+      for ( size_t i = 0; i < 16; i++ )
 	m_v[i] = org.m_v[i];
     }
     void operator=(const T* v) {
-      for ( register size_t i = 0; i < 16; i++ )
+      for ( size_t i = 0; i < 16; i++ )
 	m_v[i] = v[i];
     }
     T& operator[](size_t i) {return m_v[i];}
     T operator[](size_t i) const {return m_v[i];}
 
     void Identity() {
-      for ( register size_t i = 1; i < 15; i++ )
+      for ( size_t i = 1; i < 15; i++ )
 	m_v[i] = (T)0;
       m_v[0] = m_v[5] = m_v[10] = m_v[15] = (T)1;
     }
 
     Mat4<T> operator*(const Mat4<T>& m) const {
       Mat4<T> w;
-      register size_t i, j, k;
+      size_t i, j, k;
       for ( i = 0; i < 4; i++ ) {
 	for ( j = 0; j < 4; j++ ) {
 	  w.m_v[i*4 +j] = (T)0;
@@ -125,7 +125,7 @@ namespace CES {
     }
     Vec3<T> operator*(const Vec3<T>& v) const {
       Vec3<T> w;
-      register size_t i, k;
+      size_t i, k;
       for ( i = 0; i < 3; i++ ) {
 	w.m_v[i] = (T)0;
 	for ( k = 0; k < 3; k++)
@@ -169,7 +169,7 @@ namespace CES {
       *this = (*this) * w;
     }
     void Rotation(const T a, const Vec3<T>& v) {
-      register size_t i, j, k;
+      size_t i, j, k;
       Mat4<T> m, uut, ciu, s;
       T sa = (T)sin((double)a);
       T ca = (T)cos((double)a);
@@ -216,7 +216,7 @@ namespace CES {
     Mat4<T> Inverse() const {
       Mat4<T> RET;
       const int ip = 4;
-      register int i, j, k;
+      int i, j, k;
       int l[4], m[4];
       double b, t;
       double r[4][4] = {

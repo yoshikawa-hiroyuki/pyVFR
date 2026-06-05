@@ -32,12 +32,12 @@
 #define BSWAP_X_16(x) \
   ((((x) & 0xff00) >> 8) | (((x) & 0x00ff) << 8))
 #define BSWAP16(x) \
-  {register unsigned short& _x_v = (unsigned short&)(x); \
+  {unsigned short& _x_v = (unsigned short&)(x); \
    _x_v = BSWAP_X_16(_x_v);}
 #endif // BSWAP16
 
 #ifndef SBSWAPVEC
-#define SBSWAPVEC(a,n) do{register int _i; \
+#define SBSWAPVEC(a,n) do{int _i; \
   for(_i=0;_i<(n);_i++){BSWAP16(a[_i]);} \
 }while(0)
 #endif // SBSWAPVEC
@@ -47,12 +47,12 @@
   ((((x) & 0xff000000) >> 24) | (((x) & 0x00ff0000) >>  8) | \
    (((x) & 0x0000ff00) <<  8) | (((x) & 0x000000ff) << 24))
 #define BSWAP32(x) \
-  {register unsigned int& _x_v = (unsigned int&)(x); \
+  {unsigned int& _x_v = (unsigned int&)(x); \
    _x_v = BSWAP_X_32(_x_v);}
 #endif // BSWAP32
 
 #ifndef BSWAPVEC
-#define BSWAPVEC(a,n) do{register int _i; \
+#define BSWAPVEC(a,n) do{int _i; \
   for(_i=0;_i<(n);_i++){BSWAP32(a[_i]);} \
 }while(0)
 #endif // BSWAPVEC
@@ -64,12 +64,12 @@
  (((x)&0x00000000ff000000ull)<< 8) | (((x)&0x0000000000ff0000ull)<<24) | \
  (((x)&0x000000000000ff00ull)<<40) | (((x)&0x00000000000000ffull)<<56))
 #define BSWAP64(x) \
-  {register unsigned long long& _x_v = (unsigned long long&)(x); \
+  {unsigned long long& _x_v = (unsigned long long&)(x); \
    _x_v = BSWAP_X_64(_x_v);}
 #endif // BSWAP64
 
 #ifndef LBSWAPVEC
-#define LBSWAPVEC(a,n) do{register int _i; \
+#define LBSWAPVEC(a,n) do{int _i; \
   for(_i=0;_i<(n);_i++){BSWAP64(a[_i]);} \
 }while(0)
 #endif // LBSWAPVEC

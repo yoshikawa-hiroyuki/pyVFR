@@ -25,7 +25,7 @@ public:
     std::deque<Vector3I> vtxLst;
     if ( nCount < 3 ) return vtxLst;
 
-    register int i, j, k;
+    int i, j, k;
     Vector3F v01 = points[1] - points[0];
     Vector3F normal = v01 ^ (points[2] - points[0]);
     for ( i = 3; i < nCount; i++ ) {
@@ -86,7 +86,7 @@ public:
     Vector3F vj, n;
     int nP = nPoints - 1;
 
-    register int i, j, k;
+    int i, j, k;
     for ( i = 0, j = 1; j < nPoints; i++, j++ ) {
       k  = (j + 1) % nP;
       vj = points[k];
@@ -116,7 +116,7 @@ protected:
   bool IsAnyPointInside(const Vector3F* points,
 			int i, int j, int k, int nVertex) const {
     int ik = m_nIndex[k];
-    register int ip;
+    int ip;
     for ( ip = 0; ip < nVertex; ip++ )
       if ( ( ip < i || ip > k ) &&
 	   IsPointInside(points[m_nIndex[ip]],points[ik]) ) {
@@ -163,7 +163,7 @@ private:
       m_nMaxPoints = nCount + 2;
       m_nIndex = new int[m_nMaxPoints];
     }
-    register int i;
+    int i;
     for ( i = 0; i < nCount; i++ )
       m_nIndex[i] = i;
   }
