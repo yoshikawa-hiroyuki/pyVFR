@@ -1,0 +1,34 @@
+# makefile for impl
+
+TARGET = vsn_impl.dylib
+OBJS = vsnIsosurf.o \
+
+VFR_LIBDIR = ../../vfr/lib
+
+CXX=g++
+CXXFLAGS=-g -fPIC -c -I$(VFR_LIBDIR)
+
+LINK=$(CXX)
+LDFLAGS=-L$(VFR_LIBDIR) -dynamiclib -g -fPIC
+LDLIBS=-lvfr_impl -framework OpenGL
+
+NAME_TOOL=install_name_tool
+
+RM = rm -f
+CP = cp
+
+all: $(TARGET)
+
+$(TARGET) : $(OBJS)
+	$(LINK) -o $@ $(OBJS) $(LDFLAGS) $(LDLIBS)
+	$(NAME_TOOL) -change vfr_impl.dylib \
+	  @loader_path/$(VFR_LIBDIR)/vfr_impl.dylib $(TARGET)
+	$(RM) lib$(TARGET)
+	$(CP) $(TARGET) lib$(TARGET)
+
+clean:
+	$(RM) $(OBJS)
+
+distclean: clean
+	$(RM) $(TARGET) lib$(TARGET)
+
