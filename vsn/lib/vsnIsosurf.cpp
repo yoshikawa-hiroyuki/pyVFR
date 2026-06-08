@@ -1061,28 +1061,30 @@ vsnIsosurf::CELL_ENTRY vsnIsosurf::cell_table[256] = {
 // interfaces for ctypes
 //------------------------------------------------------------------------
 
-VFR_API void* GenerateIsosurfS(const size_t dims[3],
-			       const vector3* coord, const float* data,
-			       const float thresh)
+VFR_API VFR_BOOL GenerateIsosurfS(void* p,
+				  const size_t dims[3],
+				  const vector3* coord, const float* data,
+				  const float thresh)
 {
-  ObjData* p = new ObjData();
-  if ( ! p ) return NULL;
+  ObjData* po = (ObjData*)p;
+  if ( ! po ) return VFR_FALSE;
 
-  if ( ! vsnIsosurf::IsoSurf(dims, coord, data, thresh, *p) )
-    return NULL;
+  if ( ! vsnIsosurf::IsoSurf(dims, coord, data, thresh, *po) )
+    return VFR_FALSE;
 
-  return (void*)p;
+  return VFR_TRUE;
 }
 
-VFR_API void* GenerateIsosurfD(const size_t dims[3],
-			       const vector3* coord, const double* data,
-			       const double thresh)
+VFR_API VFR_BOOL GenerateIsosurfD(void* p,
+				  const size_t dims[3],
+				  const vector3* coord, const double* data,
+				  const double thresh)
 {
-  ObjData* p = new ObjData();
-  if ( ! p ) return NULL;
+  ObjData* po = (ObjData*)p;
+  if ( ! po ) return VFR_FALSE;
 
-  if ( ! vsnIsosurf::IsoSurf(dims, coord, data, thresh, *p) )
-    return NULL;
+  if ( ! vsnIsosurf::IsoSurf(dims, coord, data, thresh, *po) )
+    return VFR_FALSE;
 
-  return (void*)p;
+  return VFR_TRUE;
 }

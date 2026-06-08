@@ -1,12 +1,16 @@
+import os, sys
 import ctypes as C
 import numpy as N
-import os
+if not ".." in sys.path:
+    sys.path = sys.path + [".."]
+from vfr import *
 
 vsn_impl = N.ctypeslib.load_library('vsn_impl',
                                     os.path.join(os.path.dirname(__file__),
                                                  "lib"))
-vsn_impl.GenerateIsosurfS.restype = C.c_void_p
+vsn_impl.GenerateIsosurfS.restype = C.c_int
 vsn_impl.GenerateIsosurfS.argtypes = [
+    C.c_void_p,             # p
     C.c_size_t*3,           # dims[3]
     C.POINTER(C.c_float*3), # coord
     C.POINTER(C.c_float),   # data
@@ -65,4 +69,10 @@ def make_data_array(sph):
 coord = make_coord_array(sph)
 data = make_data_array(sph)
 
-iso_obj = vsn_impl.GenerateIsosurfS(dims, coord, data, 0.0)
+iso_obj = triangles.Triangles()
+ret = vsn_impl.GenerateIsosurfS(iso_obj.p_impl, dims, coord, data, 0.0)
+if ret:
+    iso_obj.updateObjImpl()
+print(f'nVerts = {iso_obj.nVerts}')
+del iso_obj
+
