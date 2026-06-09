@@ -8,11 +8,11 @@ import numpy as np
 if not ".." in sys.path:
     sys.path = sys.path + [".."]
 from vfr import *
-from VisObj import *
+from VisRegularMesh import *
 
 
 #----------------------------------------------------------------------
-class VisRegBounds(VisObj):
+class VisRegBounds(VisRegularMesh):
     """ VisRegBoundsクラス
         show region bound lines
     """
@@ -24,23 +24,14 @@ class VisRegBounds(VisObj):
         """
         args: data =None, bbox =None, coord =None, lineWidth =1.0
         """
-        VisObj.__init__(self, **args)
+        VisRegularMesh.__init__(self, **args)
         self.showType = gfxNode.RT_WIRE
         self.mode = VisRegBounds.BOUNDS_NONE
         self._lineWidthTxt = None
+        self.p_data = None
         
-        data = None  if not 'data'  in args else args['data']
-        bbox = None  if not 'bbox'  in args else args['bbox']
-        coord = None if not 'coord' in args else args['coord']
-        try:
-            lw = float(args['lineWidth'])
-            if lw > 0.0:
-                self.setLineWidth(args['lineWidth'])
-        except:
-            pass
-        
-        if not data is None or not bbox is None or not coord is None:
-            self.update(**args)
+        if self.update(**args):
+            self.show = True
         return
 
     def getVisObjType(self):
@@ -102,19 +93,22 @@ class VisRegBounds(VisObj):
 
     def update(self, **args):
         self.show = False
+        
         data = None  if not 'data'  in args else args['data']
-        o_p = None   if not 'orgPitch' in args else args['orgPitch']
-        bbox = None  if not 'bbox'  in args else args['bbox']
-        coord = None if not 'coord' in args else args['coord']
-        if data is None and bbox is None and coord is None:
-            return False
-
+        (coord, bbox, o_p) = VisRegularMesh.getCoordArgs(self, **args)
+        lineWidth = -1.0 if not 'lineWidth' in args else args['lineWidth']
+        
         if not coord is None:
             self.updateCoord(coord)
         elif not bbox is None:
             self.updateBbox(bbox)
         elif not data is None:
             self.updateData(data, o_p)
+        if lineWidth > 0.0:
+            self.setLineWidth(lineWidth)
+
+        if not self._needUpdate:
+            return True
 
         self.generateBbox()
         self.show = True
@@ -179,6 +173,7 @@ class VisRegBounds(VisObj):
         ls.generateBbox()
         self.addChild(ls)
         self.mode = VisRegBounds.BOUNDS_BY_DATA
+        self._needUpdate = True
         return
 
     def updateBbox(self, bbox):
@@ -203,6 +198,7 @@ class VisRegBounds(VisObj):
         ls.generateBbox()
         self.addChild(ls)
         self.mode = VisRegBounds.BOUNDS_BY_BBOX
+        self._needUpdate = True
         return
 
     def updateCoord(self, coord):
@@ -214,9 +210,9 @@ class VisRegBounds(VisObj):
         
         if nd < 4 or coord.shape[3] < 3:
             raise ValueError("The coord has invalid shape.")
-        nx = data.shape[2]
-        ny = data.shape[1]
-        nz = data.shape[0]
+        nx = coord.shape[2]
+        ny = coord.shape[1]
+        nz = coord.shape[0]
 
         # (x0, y0, z0) - (x1, y0, z0)
         ls = lines.LineStrip(name='RegBounds_LineStrip', localMaterial=False)
@@ -327,6 +323,7 @@ class VisRegBounds(VisObj):
         ls.generateBbox()
         self.addChild(ls)
         self.mode = VisRegBounds.BOUNDS_BY_COORD
+        self._needUpdate = True
         return
 
 

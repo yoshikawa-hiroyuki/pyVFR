@@ -3,11 +3,12 @@
 """
 vfr scene-graph library
 
-Copyright(c) RIKEN, 2008-2009, All Right Reserved.
+Copyright(c) YoH, 2026, All Right Reserved.
 
 """
 import copy
 
+#----------------------------------------------------------------------
 class Base(object):
     """
     リンクオブジェクト基底クラス
@@ -112,7 +113,7 @@ class Base(object):
         for r in self._Ref:
             r.chkNotice()
 
-
+#----------------------------------------------------------------------
 class Node(Base):
     """
     ノードクラス
@@ -207,7 +208,7 @@ class Node(Base):
         rs = ' ' * ts + self.__str__() + '\n'
         return rs
 
-
+#----------------------------------------------------------------------
 class Group(Node):
     """
     グルーピングノードクラス

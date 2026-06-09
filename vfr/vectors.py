@@ -3,7 +3,7 @@
 """
 vfr scene-graph library
 
-Copyright(c) RIKEN, 2008-2009, All Right Reserved.
+Copyright(c) YoH, 2026, All Right Reserved.
 
 """
 
@@ -34,7 +34,6 @@ from .gfxNode import *
 
 """ベクトルポジションタイプ"""
 (VECPOS_NORMAL, VECPOS_CENTER, VECPOS_TIP) = range(3)
-
 
 class Vectors(GfxNode):
     """
@@ -154,7 +153,6 @@ class Vectors(GfxNode):
         # un-apply matrix
         self.unApplyMatrix()
         return
-
 
 #----------------------------------------------------------------------
 def ReadPwn(path):

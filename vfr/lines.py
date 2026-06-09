@@ -3,7 +3,7 @@
 """
 vfr scene-graph library
 
-Copyright(c) RIKEN, 2008-2009, All Right Reserved.
+Copyright(c) YoH, 2026, All Right Reserved.
 
 """
 
