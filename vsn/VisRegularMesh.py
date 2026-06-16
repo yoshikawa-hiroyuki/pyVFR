@@ -42,7 +42,12 @@ class VisRegularMesh(VisObj):
             if not dims:
                 dims = cdims
             if cdims >= dims:
-                self.p_coord = coord[:dims[0], :dims[1], :dims[2], :]
+                if coord.dtype == np.float32:
+                    self.p_coord = coord[:dims[0], :dims[1], :dims[2], :]
+                else:
+                    self.p_coord = np.empty((dims[0], dims[1], dims[2], 3),
+                                            dtype=np.float32)
+                    self.p_coord[:,:,:,:] = coord[:dims[0],:dims[1],:dims[2],:]
                 self._needUpdate = True
             else:
                 return False
@@ -60,7 +65,7 @@ class VisRegularMesh(VisObj):
                 bbox[0][2]:bbox[1][2]:complex(dims[0]),
                 bbox[0][1]:bbox[1][1]:complex(dims[1]),
                 bbox[0][0]:bbox[1][0]:complex(dims[2])]
-            self.p_coord = np.stack([Xg, Yg, Zg], axis=-1)
+            self.p_coord = np.stack([Xg, Yg, Zg], axis=-1, dtype=np.float32)
             self._needUpdate = True
         except:
             return False
@@ -80,7 +85,7 @@ class VisRegularMesh(VisObj):
                 o_p[0][2]:gro[2]:complex(dims[0]),
                 o_p[0][1]:gro[1]:complex(dims[1]),
                 o_p[0][0]:gro[0]:complex(dims[2])]
-            self.p_coord = np.stack([Xg, Yg, Zg], axis=-1)
+            self.p_coord = np.stack([Xg, Yg, Zg], axis=-1, dtype=np.float32)
             self._needUpdate = True
         except:
             return False

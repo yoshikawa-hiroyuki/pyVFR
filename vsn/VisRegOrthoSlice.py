@@ -87,7 +87,7 @@ class VisRegOrthoSlice(VisRegularMesh):
         return True
 
     def setBaseColor(self, color):
-        """ setBaseColor -- override VisObj.setRenderMode
+        """ setBaseColor -- override VisObj.setBaseColor
         """
         self._colors[0][0:3] = color[0:3]
         self.notice()

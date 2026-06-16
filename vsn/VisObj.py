@@ -84,6 +84,7 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
 
     def setHilight(self, hilight):
         self.hilight = hilight
+        self.specular[0:3] = [hilight] * 3
         for c in self._children:
             c._specular[0:3] = [hilight] * 3
             c.notice()
