@@ -6,6 +6,7 @@ Copyright(c) YoH, 2026, All Right Reserved.
 
 #include "gfx_impl.h"
 #include "util/utilMath.h"
+#include <deque>
 
 
 //---------------------- gfxNode_DrawTrias ----------------------
@@ -72,56 +73,55 @@ public:
 
   struct HASH_ENTRY {
     size_t tri, off;
-    struct HASH_ENTRY* next;
-    HASH_ENTRY() : tri(0), off(0), next(NULL) {}
+    HASH_ENTRY(const size_t t =0, const size_t o =0) : tri(t), off(o) {}
   };
 
-  TriaSmoother(const float tolerance =0.707f)
-    : hTbl(NULL), cosTolerance(tolerance) {
-    hTbl = (HASH_ENTRY**)malloc(sizeof(HASH_ENTRY*)*TS_HASH_TABLE_SIZE);
-    if ( cosTolerance < 0.01f || cosTolerance > 0.99f )
-      cosTolerance = 0.707f;
+  TriaSmoother(const float tolerance =0.f) : cosTolerance(tolerance) {
+    if ( cosTolerance < 0.f ) cosTolerance = 0.f;
+    if ( cosTolerance > 0.99f ) cosTolerance = 0.99f;
   }
-  ~TriaSmoother() {if ( hTbl ) free(hTbl);}
+  ~TriaSmoother() {}
 
 private:
-  HASH_ENTRY** hTbl;
+  std::deque<HASH_ENTRY> hTbl[TS_HASH_TABLE_SIZE];
   float cosTolerance;
   static size_t hashValue(const vector3 v) {
-    const size_t* p = (const size_t*)v;
-    return (((p[0]*283+p[1])*283)+p[2]) % TS_HASH_TABLE_SIZE;
+    return (size_t)fabs(((v[0]*283+v[1])*283)+v[2]) % TS_HASH_TABLE_SIZE;
   }
 
   void hashInsert(const vector3 v, const size_t t, const size_t o) {
-    if ( ! hTbl ) return;
     size_t h = hashValue(v);
-    HASH_ENTRY* hh = new HASH_ENTRY();
-    hh->next = hTbl[h]; hTbl[h] = hh;
-    hh->tri = t; hh->off = o;
+    HASH_ENTRY hh(t, o);
+    hTbl[h].push_back(hh);
   }
 };
 
 VFR_BOOL TriaSmoother::SmoothNorm(int nV, vector3* vtx, int nN, vector3* normal)
 {
   size_t i;
-  if ( ! hTbl ) return VFR_FALSE;
-  memset(hTbl, 0, sizeof(HASH_ENTRY*)*TS_HASH_TABLE_SIZE);
+  for ( i = 0; i < TS_HASH_TABLE_SIZE; i++ )
+    hTbl[i].clear();
 
   size_t numV = nV;
   size_t numN = nV / 3;
   if ( numV < 3 || numN < 1 ) return VFR_FALSE;
+  if ( numN < numV / 3 ) return VFR_FALSE; // Normals not generated
 
   vector3* newNV = (vector3*)malloc(sizeof(vector3)*numV);
   if ( ! newNV ) return VFR_FALSE;
   vector3* pv = vtx;
   vector3* pn = normal;
   for ( i = 0; i < numN; i++ ) {
-    CES::Vec3<float> wkn;
-    memcpy(wkn.m_v, pn[i], sizeof(vector3));
-    wkn.UnitVec();
-    memcpy(newNV[i*3   ], wkn.m_v, sizeof(vector3));
-    memcpy(newNV[i*3 +1], wkn.m_v, sizeof(vector3));
-    memcpy(newNV[i*3 +2], wkn.m_v, sizeof(vector3));
+    float len = (float)sqrt(pn[i][0]*pn[i][0] +
+                            pn[i][1]*pn[i][1] + pn[i][2]*pn[i][2]);
+    if ( len <= 1e-8f ) {
+      pn[i][0] = 0.f; pn[i][1] = 0.f; pn[i][2] = 1.f;
+    } else {
+      pn[i][0] /= len; pn[i][1] /= len; pn[i][2] /= len;
+    }
+    memcpy(newNV[i*3   ], pn[i], sizeof(vector3));
+    memcpy(newNV[i*3 +1], pn[i], sizeof(vector3));
+    memcpy(newNV[i*3 +2], pn[i], sizeof(vector3));
   }
 
   // create table
@@ -133,62 +133,59 @@ VFR_BOOL TriaSmoother::SmoothNorm(int nV, vector3* vtx, int nN, vector3* normal)
 
   // smooth
   for ( i = 0; i < TS_HASH_TABLE_SIZE; i++ ) {
-    while ( hTbl[i] ) {
-      HASH_ENTRY *p, *nequal = NULL, *equal = hTbl[i];
-      int j=0;
+    while ( ! hTbl[i].empty() ) {
+      std::deque<HASH_ENTRY> vset;
+      std::deque<HASH_ENTRY>::iterator it = hTbl[i].begin();
       CES::Vec3<float> nn, vv;
       float cs;
 
-      vv[0] = pv[equal->tri*3 + equal->off][0];
-      vv[1] = pv[equal->tri*3 + equal->off][1];
-      vv[2] = pv[equal->tri*3 + equal->off][2];
-      nn[0] = newNV[equal->tri*3 + equal->off][0];
-      nn[1] = newNV[equal->tri*3 + equal->off][1];
-      nn[2] = newNV[equal->tri*3 + equal->off][2];
-
-      for( p = equal->next, equal->next = 0; p; ) {
-        HASH_ENTRY *p1 = p->next;
-        if ( pv[p->tri*3 + p->off][0] == vv[0] &&
-             pv[p->tri*3 + p->off][1] == vv[1] &&
-             pv[p->tri*3 + p->off][2] == vv[2] ) {
-          cs = CES::Vec3<float>(newNV[p->tri*3 +p->off]) | nn;
-          if ( cs > cosTolerance ) {
-            p->next = equal; equal = p;
-            j++;
-            p = p1;
+      vv[0] = pv[it->tri*3 + it->off][0];
+      vv[1] = pv[it->tri*3 + it->off][1];
+      vv[2] = pv[it->tri*3 + it->off][2];
+      nn[0] = pn[it->tri][0];
+      nn[1] = pn[it->tri][1];
+      nn[2] = pn[it->tri][2];
+      
+      it++;
+      while ( it != hTbl[i].end() ) {
+        if ( fabs(pv[it->tri*3 + it->off][0] - vv[0]) < 1e-6 &&
+             fabs(pv[it->tri*3 + it->off][1] - vv[1]) < 1e-6 &&
+             fabs(pv[it->tri*3 + it->off][2] - vv[2]) < 1e-6 ) {
+          cs = CES::Vec3<float>(pn[it->tri]) | nn;
+          if ( fabs(cs) > cosTolerance ) {
+            vset.push_back(*it);
+            it = hTbl[i].erase(it);
             continue;
           }
         }
-        p->next = nequal; nequal = p;
-        p = p1;
-      } // end of for(p)
+        it++;
+      } // end of while(it)
 
-      hTbl[i] = nequal;
-      if ( j == 1 ) {
-        delete equal; hTbl[i] = NULL;
+      if ( vset.size() == 0 ) {
+        hTbl[i].erase(hTbl[i].begin());
         continue;
       }
-
+      
       /* average the normal */
-      nn[0] = nn[1] = nn[2] = 0.f;
-      for ( p = equal; p; p = p->next ) {
-        nn[0] += newNV[p->tri*3 + p->off][0];
-        nn[1] += newNV[p->tri*3 + p->off][1];
-        nn[2] += newNV[p->tri*3 + p->off][2];
-      }
+      for ( it = vset.begin(); it != vset.end(); it++ ) {
+        nn[0] += pn[it->tri][0];
+        nn[1] += pn[it->tri][1];
+        nn[2] += pn[it->tri][2];
+      } // end of for(it)
       nn.UnitVec();
 
       /* put it back */
-      for ( p = equal; p; ) {
-        HASH_ENTRY *p1 = p->next;
-        newNV[p->tri*3 + p->off][0] = nn[0];
-        newNV[p->tri*3 + p->off][1] = nn[1];
-        newNV[p->tri*3 + p->off][2] = nn[2];
-        delete p;
-        p = p1;
-      }
-      hTbl[i] = NULL;
+      it = hTbl[i].begin();
+      newNV[it->tri*3 + it->off][0] = nn[0];
+      newNV[it->tri*3 + it->off][1] = nn[1];
+      newNV[it->tri*3 + it->off][2] = nn[2];
+      for ( it = vset.begin(); it != vset.end(); it++ ) {
+        newNV[it->tri*3 + it->off][0] = nn[0];
+        newNV[it->tri*3 + it->off][1] = nn[1];
+        newNV[it->tri*3 + it->off][2] = nn[2];
+      } // end of for(it)
 
+      hTbl[i].erase(hTbl[i].begin());
     } // end while
   } // end of for(i)
 
@@ -226,7 +223,7 @@ VFR_API VFR_BOOL gfxTriangles_CalcNormals(int nv, float* vtx,
   }
 
   if ( ntype == AT_PER_VERTEX ) {
-    TriaSmoother smoother;
+    TriaSmoother smoother(0.25f);
     return smoother.SmoothNorm(nv, (vector3*)vtx, nn, (vector3*)normal);
   }
   return VFR_TRUE;

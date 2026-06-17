@@ -135,7 +135,8 @@ class VisRegIsosurf(VisRegularMesh):
 
         isoValue = None if not 'isoValue' in args else args['isoValue']
         useLut = True if not 'useLut' in args else args['useLut']
-        useLutAlpha = True if not 'useLutAlpha' in args else args['useLutAlpha']
+        useLutAlpha = False if not 'useLutAlpha' in args \
+            else args['useLutAlpha']
 
         if not data is None:
             self.setData(data, False)
