@@ -1,7 +1,7 @@
 /*
 vfr scene-graph library
 
-Copyright(c) ToH, 2026, All Right Reserved.
+Copyright(c) YoH, 2026, All Right Reserved.
 */
 
 #include "gfx_impl.h"
