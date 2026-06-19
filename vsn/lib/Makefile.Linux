@@ -1,0 +1,30 @@
+# makefile for impl
+G=-g
+TARGET = vsn_impl.so
+OBJS = vsnIsosurf.o \
+
+INC_DIR = ../../vfr/lib
+
+CXX=g++
+CXXFLAGS=$(G) -fPIC -I$(INC_DIR)
+
+LINK=$(CXX)
+LDFLAGS=-shared -fPIC $(G)
+LDLIBS=-lGL -lGLU
+
+RM = rm -f
+CP = cp
+
+all: $(TARGET)
+
+$(TARGET) : $(OBJS)
+	$(CXX) -o $@ $(OBJS) $(LDFLAGS) $(LDLIBS)
+	$(RM) lib$(TARGET)
+	$(CP) $(TARGET) lib$(TARGET)
+
+clean:
+	$(RM) $(OBJS)
+
+distclean: clean
+	$(RM) $(TARGET) lib$(TARGET)
+
