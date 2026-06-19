@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-VisRegOrthoSlice
+VisRegIsosurf
 """
 import sys, os
 import numpy as np

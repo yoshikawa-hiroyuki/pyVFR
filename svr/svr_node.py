@@ -9,7 +9,7 @@ import struct
 import copy
 import numpy as np
 from scipy.ndimage import zoom
-import volume_render as vr
+from .volume_render import *
 
 from vfr import *
 from vfr import lut
@@ -55,7 +55,7 @@ class SvrNode(gfxNode.GfxNode):
     def Initialize(self):
         if self.p_render:
             del self.p_render
-        self.p_render = vr.VolumeRender()
+        self.p_render = VolumeRender()
         return
     
     def SetData(self, fdata, nx, ny, nz, dmin, dmax, dlen=1, tgt=0):
@@ -67,7 +67,7 @@ class SvrNode(gfxNode.GfxNode):
         if dmin >= dmax:
             return False
 
-        xdims = vr.GetMax3DTexSize([nx, ny, nz])
+        xdims = GetMax3DTexSize([nx, ny, nz])
         xdSz = xdims[0] * xdims[1] * xdims[2]
         if xdSz < 1:
             return False

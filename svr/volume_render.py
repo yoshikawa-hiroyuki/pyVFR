@@ -6,8 +6,8 @@ import numpy as np
 from OpenGL.GL import *
 
 from vfr.utilMath import *
-from program_object import ProgramObject
-from shader_object import VertexShaderObject, FragmentShaderObject
+from .program_object import ProgramObject
+from .shader_object import VertexShaderObject, FragmentShaderObject
 
 #----------------------------------------------------------------------
 vs_code = '''
