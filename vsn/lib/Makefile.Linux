@@ -3,14 +3,14 @@ G=-g
 TARGET = vsn_impl.so
 OBJS = vsnIsosurf.o \
 
-INC_DIR = ../../vfr/lib
+VFR_LIBDIR = ../../vfr/lib
 
 CXX=g++
-CXXFLAGS=$(G) -fPIC -I$(INC_DIR)
+CXXFLAGS=$(G) -fPIC -I$(VFR_LIBDIR)
 
 LINK=$(CXX)
-LDFLAGS=-shared -fPIC $(G)
-LDLIBS=-lGL -lGLU
+LDFLAGS=-L$(VFR_LIBDIR) -Wl,-rpath,'$$ORIGIN'/$(VFR_LIBDIR) -shared -fPIC $(G)
+LDLIBS=-lvfr_impl -lGL -lGLU
 
 RM = rm -f
 CP = cp

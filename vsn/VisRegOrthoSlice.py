@@ -421,9 +421,8 @@ if __name__ == '__main__':
     app = App.GetVsnApp()
     arena = app.getArena()
     
-    files = [f"p_{i:03d}.sph" for i in range(1, 11)]
     sph = SPH.SPH()
-    sph.load(os.path.join("data", files[-1]))
+    sph.load(os.path.join("data", "p_010.sph"))
     print(f"dims={sph.dims}")
     print(f"org={sph.org}")
     print(f"pitch={sph.pitch}")

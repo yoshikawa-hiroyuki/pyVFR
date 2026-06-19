@@ -72,7 +72,10 @@ class OglCanvas(glcanvas.GLCanvas):
         サイズ変更のコールバック
         - evt: wxイベント
         """
-        self.SetCurrent(self.ctx)
+        try:
+            self.SetCurrent(self.ctx)
+        except:
+            pass
         if self._da:
             self._da.resized()
         evt.Skip()

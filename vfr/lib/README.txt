@@ -6,3 +6,4 @@ Ubuntu 22+
    apt install python3-opengl
    apt install python3-scipy
    apt install python3-pybind11
+   pip install --upgrade numpy  (need NumPy 1.24+)
