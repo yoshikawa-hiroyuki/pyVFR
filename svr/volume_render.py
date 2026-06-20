@@ -2,12 +2,15 @@
 # Simple Volume Renderer
 #
 import os, sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+if not ".." in sys.path:
+    sys.path = sys.path + [".."]
 import numpy as np
 from OpenGL.GL import *
 
 from vfr.utilMath import *
-from .program_object import ProgramObject
-from .shader_object import VertexShaderObject, FragmentShaderObject
+from program_object import ProgramObject
+from shader_object import VertexShaderObject, FragmentShaderObject
 
 #----------------------------------------------------------------------
 vs_code = '''

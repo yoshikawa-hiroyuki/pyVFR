@@ -3,13 +3,14 @@
 #
 
 import sys, os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 if not ".." in sys.path:
     sys.path = sys.path + [".."]
 import struct
 import copy
 import numpy as np
 from scipy.ndimage import zoom
-from .volume_render import *
+from volume_render import *
 
 from vfr import *
 from vfr import lut
