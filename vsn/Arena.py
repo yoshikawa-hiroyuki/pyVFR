@@ -7,6 +7,7 @@
 """ Arena.
 """
 import sys
+from functools import cmp_to_key
 if not ".." in sys.path:
     sys.path = sys.path + [".."]
 from OpenGL.GL import *
@@ -227,7 +228,6 @@ class Arena(gfxGroup.GfxGroup):
         svrLst = []
         for pvn in self.volRoot._children:
             if pvn.getRenderMode() == gfxNode.RT_NONE: continue
-            if not pvn.getFocus(): continue
             M = utilMath.Mat4()
             if not self.accumMatrix(pvn.getID(), M): continue
             M = MVM * M
@@ -239,7 +239,12 @@ class Arena(gfxGroup.GfxGroup):
             svrLst += [(abs(c) - r, pvn)]
         if len(svrLst) < 1:
             return []
-        return sorted(svrLst, lambda x, y : cmp(x[0],y[0]), reverse=True)
+
+        def cmp(a, b):
+            return (a > b) - (a < b)
+        
+        return sorted(svrLst, key=cmp_to_key(lambda x, y: cmp(x[0], y[0])),
+                      reverse=True)
 
 
     def render_(self, transpMode):
@@ -251,19 +256,22 @@ class Arena(gfxGroup.GfxGroup):
         gfxGroup.GfxGroup.render_(self, transpMode)
 
         # call volume renderers
-        if not transpMode: return
-        if self.volRoot.getNumChildren() < 1: return
+        if not transpMode:
+            return
+        if self.volRoot.getNumChildren() < 1:
+            return
         
         modelMat = glGetFloatv(GL_MODELVIEW_MATRIX)
         MVM = utilMath.Mat4()
         MVM.m_v = modelMat.reshape(16)
         svrLst = self.getSortedVolLst(MVM)
-        M = utilMath.Mat4()
+        #M = utilMath.Mat4()
         for d, pvn in svrLst:
-            pvr = pvn.getVolumeRender()
-            M.Identity()
-            if self.accumMatrix(pvn.getID(), M) and pvr:
-                pvr.DrawVolume(M)
+            pvn.render_(transpMode)
+            #pvr = pvn.getVolumeRender()
+            #M.Identity()
+            #if self.accumMatrix(pvn.getID(), M) and pvr:
+            #    pvr.DrawVolume(M)
         # done
         return
 

@@ -21,8 +21,46 @@ class VisRegularMesh(VisObj):
         VisObj.__init__(self, **args)
         
         self._needUpdate = False
+        self.p_data = None
         self.p_coord = None
         return
+
+    def setScalarData(self, data, forceUpd=True, minmaxUpd=True):
+        if forceUpd:
+            self._needUpdate = True
+        if self.p_data is data:
+            return True
+        if isinstance(data, np.ndarray) and len(data.shape) in (3, 4):
+            if len(data.shape) == 4:
+                self.p_data = data[:, :, :, 0]
+            else:
+                self.p_data = data
+            if minmaxUpd:
+                self.setMinMax([self.p_data.min(), self.p_data.max()])
+        else:
+            return False
+        self._needUpdate = True
+        return True
+
+    def setVectorData(self, data, forceUpd=True, minmaxUpd=True):
+        if forceUpd:
+            self._needUpdate = True
+        if self.p_data is data:
+            return True
+        if isinstance(data, np.ndarray) and len(data.shape) == 4:
+            if data.shape[3] > 3:
+                self.p_data = data[:, :, :, :, 0:3]
+            elif data.shape[3] == 3:
+                self.p_data = data
+            else:
+                return False
+            if minmaxUpd:
+                maxVecLen = np.sqrt((self.p_data**2).sum(axis=-1)).max()
+                self.setMinMax([0.0, maxVecLen])
+        else:
+            return False
+        self._needUpdate = True
+        return True
 
     def getCoordArgs(self, **args):
         """

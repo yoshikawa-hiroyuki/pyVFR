@@ -46,22 +46,8 @@ class VisRegOrthoSlice(VisRegularMesh):
         return "OrthoSlice"
 
     def setData(self, data, forceUpd=True, minmaxUpd=True):
-        if forceUpd:
-            self._needUpdate = True
-        if self.p_data is data:
-            return True
-        if isinstance(data, np.ndarray) and len(data.shape) >= 3:
-            if len(data.shape) > 3:
-                self.p_data = data[:, :, :, 0]
-            else:
-                self.p_data = data
-            if minmaxUpd:
-                self.setMinMax([self.p_data.min(), self.p_data.max()])
-        else:
-            return False
-        self._needUpdate = True
-        return True
-
+        return VisRegularMesh.setScalarData(self, data, forceUpd, minmaxUpd)
+        
     def setSliceParam(self, slicePlane=-1, sliceIndex=-1, forceUpd=True):
         if forceUpd:
             self._needUpdate = True

@@ -39,6 +39,9 @@ class SvrNode(gfxNode.GfxNode):
         self.setTransparency(True)
         return
 
+    def getVolumeRender(self):
+        return self.p_render
+
     def renderSolid(self):
         if not self.p_render: return
 
@@ -112,7 +115,8 @@ class SvrNode(gfxNode.GfxNode):
     def updateData(self):
         if not self.p_render: return
         if not self.m_data_updated: return
-        if self.m_data is None or self.m_dims[0]*self.m_dims[1]*self.m_dims[2] < 1:
+        if self.m_data is None or \
+           self.m_dims[0]*self.m_dims[1]*self.m_dims[2] < 1:
             return
 
         self.p_render.SetVolume(self.m_data,
