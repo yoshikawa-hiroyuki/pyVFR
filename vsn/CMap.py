@@ -248,7 +248,10 @@ class CMapCanvas(glcanvas.GLCanvas):
         sz = self.GetClientSize()
         #if not self.GetContext(): return
         #self.SetCurrent(self.ctx)
-        glViewport(0, 0, sz.x, sz.y)
+        try:
+            glViewport(0, 0, sz.x, sz.y)
+        except:
+            pass
         
     def OnEraseBackground(self, event):
         """ Erase backgroundイベント.
