@@ -42,7 +42,10 @@ class ShaderManager(object):
 
         GL.glLinkProgram(self.program_id)
         if GL.glGetProgramiv(self.program_id, GL.GL_LINK_STATUS) != GL.GL_TRUE:
-            raise RuntimeError(GL.glGetProgramInfoLog(self.program_id).decode())
+            gllog = GL.glGetProgramInfoLog(self.program_id)
+            if isinstance(gllog, bytes):
+                gllog = gllog.decode()
+            raise RuntimeError(gllog)
 
         #GL.glUseProgram(self.program_id)
         return
