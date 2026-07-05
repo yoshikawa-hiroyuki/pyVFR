@@ -13,7 +13,7 @@ import ctypes as C
 import os.path
 vfr_impl = N.ctypeslib.load_library('vfr_impl',
                                     os.path.join(os.path.dirname(__file__),
-                                                 "lib"))
+                                                 "..", "bin"))
 vfr_impl.gfxMesh2D_DrawMeshFace.restype = C.c_int
 vfr_impl.gfxMesh2D_DrawMeshFace.argtypes = [
     C.c_int, C.POINTER(C.c_float*3),

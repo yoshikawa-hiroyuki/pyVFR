@@ -14,7 +14,7 @@ import numpy as N
 import os.path
 vfr_impl = N.ctypeslib.load_library('vfr_impl',
                                     os.path.join(os.path.dirname(__file__),
-                                                 "lib"))
+                                                 "..", "bin"))
 vfr_impl.ObjData_Create.restype = C.c_void_p
 vfr_impl.ObjData_Delete.argtypes = [C.c_void_p]
 

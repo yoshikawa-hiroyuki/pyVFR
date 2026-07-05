@@ -19,7 +19,7 @@ from .utilMath import *
 import os.path
 vfr_impl = N.ctypeslib.load_library('vfr_impl',
                                     os.path.join(os.path.dirname(__file__),
-                                                 "lib"))
+                                                 "..", "bin"))
 
 vfr_impl.drawArea_DragRotMatrix.restype = C.c_int
 vfr_impl.drawArea_DragRotMatrix.argtypes = [

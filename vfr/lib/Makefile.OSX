@@ -10,7 +10,8 @@ OBJS = drawArea_impl.o \
      obj_impl.o \
      obj_io_impl.o \
 
-INC_DIR = ../../../include
+INC_DIR = 
+BIN_DIR = ../../bin
 
 CXX=g++
 CXXFLAGS=-g -fPIC -c -I$(INC_DIR)
@@ -20,7 +21,7 @@ LDFLAGS=-dynamiclib -g -fPIC
 LDLIBS=-framework OpenGL
 
 RM = rm -f
-CP = cp
+CP = cp -f
 
 all: $(TARGET)
 
@@ -28,6 +29,9 @@ $(TARGET) : $(OBJS)
 	$(LINK) -o $@ $(OBJS) $(LDFLAGS) $(LDLIBS)
 	$(RM) lib$(TARGET)
 	$(CP) $(TARGET) lib$(TARGET)
+
+install: $(TARGET)
+	$(CP) $(TARGET) lib$(TARGET) $(BIN_DIR)/
 
 clean:
 	$(RM) $(OBJS)
