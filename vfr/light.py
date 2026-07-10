@@ -100,9 +100,6 @@ class Light(GfxNode):
         """
         if not self._showLight: return
 
-        if self._pickable & PT_OBJECT:
-            glPushName(self._id)
-
         self.applyMaterial()
 
         glDisable(GL_LIGHTING)
@@ -151,13 +148,8 @@ class Light(GfxNode):
         glEnable(GL_LIGHTING)
         self.unApplyMaterial()
 
-        if self._pickable & PT_OBJECT:
-            if not self._pickable & PT_BBOX:
-                glLoadName(0)
         self.drawBbox()
                     
-        if self._pickable & PT_OBJECT:
-            glPopName()
         return
 
     def generateBbox(self):

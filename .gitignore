@@ -3,6 +3,8 @@
 *.pyd
 *.dylib
 *.so
-*.o
 *.dll
+*.o
+*.obj
+*.sph
 .aider*

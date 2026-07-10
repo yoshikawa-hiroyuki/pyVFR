@@ -15,6 +15,31 @@ from .utilMath import *
 
 
 #----------------------------------------------------------------------
+# オブジェクトID ←→ 色(RGB)の変換
+def id_to_rgb(i):
+    r = (i & 0xFF) / 255.0
+    g = ((i >> 8) & 0xFF) / 255.0
+    b = ((i >> 16) & 0xFF) / 255.0
+    return (r, g, b)
+
+def rgb_to_id(color):
+    r, g, b = color
+    return int(r) + (int(g) << 8) + (int(b) << 16)
+
+# オブジェクトID ←→ 色(RGBA)の変換
+def id_to_rgba(i):
+    r = (i & 0xFF) / 255.0
+    g = ((i >> 8) & 0xFF) / 255.0
+    b = ((i >> 16) & 0xFF) / 255.0
+    a = ((i >> 24) & 0xFF) / 255.0
+    return (r, g, b, a)
+
+def rgba_to_id(color):
+    r, g, b, a = color
+    return int(r) + (int(g) << 8) + (int(b) << 16) + (int(a) << 24)
+
+
+#----------------------------------------------------------------------
 """レンダリングモードタイプ"""
 (RT_NONE, RT_SMOOTH, RT_FLAT, RT_NOLIGHT,
  RT_WIRE, RT_POINT, RT_NOTEXTURE) = (0,) + tuple([(1<<x) for x in range(6)])
@@ -581,10 +606,6 @@ class GfxNode(Node, Obj):
         レンダリング
         OpenGLによるレンダリングを行います.
         """
-        # push name for selection
-        if self._pickable & PT_OBJECT :
-            glPushName(self._id)
-
         # transformation matrix
         self.applyMatrix()
 
@@ -641,14 +662,7 @@ class GfxNode(Node, Obj):
 
         # draw bbox
         if self._showBbox:
-            if self._pickable & PT_OBJECT:
-                if not self._pickable & PT_BBOX:
-                    glLoadName(0)
             self.drawBbox()
-
-        # pop name for selection
-        if self._pickable & PT_OBJECT:
-            glPopName()
 
         # pop transformation matrix
         self.unApplyMatrix()
@@ -742,7 +756,6 @@ class GfxNode(Node, Obj):
         バウンディングボックスのOpenGLによるレンダリングを行います．
         """
         self.applyMatrix();
-        glPushName(self._id)
         if self._renderMode == RT_NONE:
             pass
         else:
@@ -784,10 +797,67 @@ class GfxNode(Node, Obj):
             glVertex3f(self._bbox[1][0], self._bbox[1][1], self._bbox[0][2])
             glVertex3f(self._bbox[1][0], self._bbox[0][1], self._bbox[0][2])
             glEnd()
-        glPopName()
         self.unApplyMatrix()
         return
 
+    #-------- selection interface --------
+    def renderSelection(self):
+        if self._renderMode == RT_NONE: return
+
+        # set color if need
+        if self._pickable & (PT_OBJECT | PT_BBOX) :
+            color = id_to_rgb(self._id)
+            glColor3fv(color)
+        
+        # transformation matrix
+        self.applyMatrix()
+
+        # apply material
+        if self._useLocalMaterial:
+            glPointSize(self._pointSize)
+            glLineWidth(self._lineWidth)
+            if not self._faceMode == GL_FRONT_AND_BACK:
+                glCullFace(self._faceMode)
+            if not self._faceMode == GL_FRONT_AND_BACK:
+                glCullFace(self._faceMode)
+            if not self._renderMode == RT_NONE:
+                if not self._faceMode == GL_FRONT_AND_BACK:
+                    glEnable(GL_CULL_FACE)
+                else:
+                    glDisable(GL_CULL_FACE)
+
+        # rendering
+        nColBk, _colorsBk, _colorModeBk = \
+            self.nColors, self._colors, self._colorMode
+        self.nColors = 0
+        self._colors = None
+        self._colorMode = 0
+        if self._renderMode & (RT_SMOOTH | RT_NOLIGHT | RT_FLAT) :
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
+            self.renderSolid()
+        if self._renderMode & RT_WIRE:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+            self.renderWire()
+        if self._renderMode & RT_POINT:
+            glPolygonMode(GL_FRONT_AND_BACK, GL_POINT)
+            self.renderPoint()
+        self.nColors, self._colors, self._colorMode = \
+            nColBk, _colorsBk, _colorModeBk
+
+        # un-apply material
+        if self._useLocalMaterial:
+            if not self._renderMode == RT_NONE:
+                if not self._faceMode == GL_FRONT_AND_BACK:
+                    glDisable(GL_CULL_FACE)
+
+        # draw bbox
+        if self._showBbox:
+            self.drawBbox()
+
+        # pop transformation matrix
+        self.unApplyMatrix()
+        return
+    
     #-------- feedback interface --------
     def renderFeedBack(self, tgt):
         """

@@ -48,10 +48,6 @@ class GfxGroup(Group, GfxNode):
         """
         if self._renderMode == RT_NONE: return
 
-        # push name for selection
-        if self._pickable & PT_OBJECT :
-            glPushName(self._id)
-
         # transformation matrix / material
         self.applyMatrix()
         self.applyMaterial()
@@ -67,14 +63,7 @@ class GfxGroup(Group, GfxNode):
         if self._showBbox:
             if (transpMode and self._bboxColor[3] <= 0.999) or \
                    (not transpMode and self._bboxColor[3] > 0.999):
-                if self._pickable & PT_OBJECT:
-                    if not self._pickable & PT_BBOX:
-                        glLoadName(0)
                 self.drawBbox()
-
-        # pop name for selection
-        if self._pickable & PT_OBJECT:
-            glPopName()
 
         # pop transformation matrix
         self.unApplyMatrix()
@@ -85,10 +74,54 @@ class GfxGroup(Group, GfxNode):
         バウンディングボックスのレンダリング
         """
         self.applyMatrix();
-        glPushName(self._id)
         for c in self._children:
             c.renderBbox()
-        glPopName();
+        self.unApplyMatrix()
+        return
+
+    def renderSelection(self):
+        if self._renderMode == RT_NONE: return
+
+        # set color if need
+        if self._pickable & (PT_OBJECT | PT_BBOX) :
+            id_color = id_to_rgb(self._id)
+            glColor3fv(id_color)
+
+        # transformation matrix
+        self.applyMatrix()
+
+        # apply material
+        if self._useLocalMaterial:
+            glPointSize(self._pointSize)
+            glLineWidth(self._lineWidth)
+            if not self._faceMode == GL_FRONT_AND_BACK:
+                glCullFace(self._faceMode)
+            if not self._faceMode == GL_FRONT_AND_BACK:
+                glCullFace(self._faceMode)
+            if not self._renderMode == RT_NONE:
+                if not self._faceMode == GL_FRONT_AND_BACK:
+                    glEnable(GL_CULL_FACE)
+                else:
+                    glDisable(GL_CULL_FACE)
+
+        # rendering children
+        for c in self._children:
+            c.renderSelection()
+            # set-back color if need
+            if self._pickable & (PT_OBJECT | PT_BBOX) :
+                glColor3fv(id_color)
+
+        # un-apply material
+        if self._useLocalMaterial:
+            if not self._renderMode == RT_NONE:
+                if not self._faceMode == GL_FRONT_AND_BACK:
+                    glDisable(GL_CULL_FACE)
+
+        # draw bbox
+        if self._showBbox:
+            self.drawBbox()
+
+        # pop transformation matrix
         self.unApplyMatrix()
         return
 

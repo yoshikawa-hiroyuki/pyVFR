@@ -119,7 +119,6 @@ class Scene(GfxGroup):
         レンダリングパスは2パスで，1パス目に不透明ノードを，2パス目に
         半透明ノードをレンダリングします.
         """
-        glPushName(0)
         self.applyMatrix()
         self.applyMaterial()
 
@@ -142,7 +141,6 @@ class Scene(GfxGroup):
 
         self.unApplyMaterial()
         self.unApplyMatrix()
-        glPopName()
         return
 
     def renderBbox(self):
@@ -150,11 +148,9 @@ class Scene(GfxGroup):
         バウンディングボックスのレンダリング
         """
         self.applyMatrix();
-        glPushName(self._id)
         for c in self._light:
             c.renderBbox()
         for c in self._children:
             c.renderBbox()
-        glPopName();
         self.unApplyMatrix()
         return

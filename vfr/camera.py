@@ -6,6 +6,7 @@ vfr scene-graph library
 Copyright(c) YoH, 2026, All Right Reserved.
 
 """
+import numpy as np
 from OpenGL.GL import *
 from OpenGL.GLU import *
 from .gfxGroup import *
@@ -14,6 +15,42 @@ from .scene import *
 from .node import *
 from .image import *
 from .utilMath import *
+
+
+#----------------------------------------------------------------------
+def pixels_to_numpy(pixel, width, height, depth):
+    """
+    glReadPixels の戻り値が bytes / list / ctypes array のどれでも
+    numpy の (height, width, depth) 配列に変換する
+    """
+    if isinstance(pixel, (bytes, bytearray)):
+        arr = np.frombuffer(pixel, dtype=np.uint8)
+    elif hasattr(pixel, "__len__") and hasattr(pixel, "__getitem__"):
+        try:
+            arr = np.array(pixel, dtype=np.uint8)
+        except Exception:
+            arr = np.array(list(pixel), dtype=np.uint8)
+    else:
+        arr = np.array(pixel, dtype=np.uint8).flatten()
+    return arr.reshape((height*width, depth))
+
+def depth_to_numpy(depth_data, width, height):
+    """
+    glReadPixels(GL_DEPTH_COMPONENT) の戻り値が
+    float / bytes / ctypes array / list のどれでも
+    numpy の (height, width) 配列に変換する
+    """
+    if isinstance(depth_data, (bytes, bytearray)):
+        arr = np.frombuffer(depth_data, dtype=np.float32)
+    elif hasattr(depth_data, "__len__") and hasattr(depth_data, "__getitem__"):
+        try:
+            arr = np.array(depth_data, dtype=np.float32)
+        except Exception:
+            arr = np.array(list(depth_data), dtype=np.float32)
+    else:
+        arr = np.array(depth_data, dtype=np.float32).flatten()
+
+    return arr.reshape((height*width))
 
 
 #----------------------------------------------------------------------
@@ -657,65 +694,74 @@ class Camera(Base):
         # not relaxed
         if len(self._selected) > 0: return -1
 
+        # context
+        self._da._canvas.SetCurrentCtx()
+
         # Get Viewport of Screen
         if self._da == None: return -1
         Viewp = self._da._viewport
-        x = Viewp[0] + cx
-        y = Viewp[1] + Viewp[3] - cy
 
-        selectBufSize = (Node._sequence % 20000) * 5
-        glSelectBuffer(selectBufSize)
+        #---- Rendering for selection ----
+        glClearColor(0.0, 0.0, 0.0, 0.0)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        glRenderMode(GL_SELECT)
-        glInitNames()
+        # set viewport
+        glEnable(GL_SCISSOR_TEST)
+        glViewport(Viewp[0], Viewp[1], Viewp[2], Viewp[3])
+        glScissor(Viewp[0], Viewp[1], Viewp[2], Viewp[3])
 
+        # set OpenGL modes
+        glDepthFunc(GL_LEQUAL)
+        glEnable(GL_DEPTH_TEST)
+        glDisable(GL_LIGHTING) # <- disable Lighting
+        glEnable(GL_NORMALIZE)
+        glEnable(GL_LINE_STIPPLE)
+        glDisable(GL_LINE_SMOOTH) # <- disable smoothing
+        glDisable(GL_POINT_SMOOTH) # <-disable smoothing
+        glPolygonOffset(1.0, 0.000001)
+        glEnable(GL_POLYGON_OFFSET_FILL)
+
+        # camera projection
+        asp = 1.0 if Viewp[3] < 1 else float(Viewp[2]) / float(Viewp[3])
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPickMatrix(x, y, w, h, Viewp)
+        self.projection(asp)
 
+        # model coordinates
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-        self.projection(float(Viewp[2])/float(Viewp[3]))
         self._frustum.ApplyModelview()
 
+        # scene rendering for selection
         if self._scene:
-            self._scene.render()
-
-        if self._front:
-            glMatrixMode(GL_MODELVIEW)
-            glPushMatrix()
-            glLoadIdentity()
-            psz = self._da.getSize()
-            if psz.y <= 0: asp = 1.0
-            else:          asp = float(psz.x) / float(psz.y)
-            glOrtho(-asp, asp, -1.0, 1.0, -50.0, 50.0)
-            self._front.render_(False)
-            self._front.render_(True)
-            glPopMatrix()
-
+            self._scene.renderSelection()
         glFlush()
 
-        """ glGetError not ported to PyOpenGL, raise exception.
-        """
+        # read pixel color and depth
+        halfw = int(w/2)
+        halfh = int(h/2)
+        pixel = glReadPixels(cx -halfw, cy -halfh, w, h, \
+                             GL_RGB, GL_UNSIGNED_BYTE)
+        depth = glReadPixels(cx -halfw, cy -halfh, w, h, \
+                             GL_DEPTH_COMPONENT, GL_FLOAT)
+        p_arr = pixels_to_numpy(pixel, w, h, 3)
+        d_arr = depth_to_numpy(depth, w, h)
 
-        selectBuf = glRenderMode(GL_RENDER)
-        hits = len(selectBuf)
-        if hits < 1: return 0
-        self._selected = [0 for i in range(hits)]
-        depthL = [[0.0, 0] for i in range(hits)] # [depth, id]
+        # generate id list from color list
+        r = p_arr[:, 0].astype(int)
+        g = p_arr[:, 1].astype(int)
+        b = p_arr[:, 2].astype(int)
+        id_arr = r + g * 256 + b * 256 * 256
 
-        i = 0
-        for hit_record in selectBuf:
-            min_depth, max_depth, names = hit_record
-            depthL[i][0] = min_depth # this is depth1
-            depthL[i][1] = names[-1]
-            i += 1
-        depthL.sort()
+        # sort id list(not 0) via depth
+        mask = id_arr != 0
+        ids = id_arr[mask]
+        ds = d_arr[mask]
+        order = np.argsort(ds)
+        self._selected = ids[order]
 
-        for i in range(hits):
-            self._selected[i] = depthL[i][1]
+        # redraw
         
-        del depthL, selectBuf
         return len(self._selected)
 
     def feedback(self, cx, cy, w, h, target):

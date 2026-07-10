@@ -341,6 +341,6 @@ if __name__ == '__main__':
     bounds.showColorBar(True)
     arena.addObject(bounds)
 
-    app.run_console()
+    #app.run_console()
     app.run(debug=True)
     
