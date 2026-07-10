@@ -10,7 +10,8 @@ OBJS = drawArea_impl.o \
      obj_impl.o \
      obj_io_impl.o \
 
-INC_DIR = ../../../include
+INC_DIR = 
+BIN_DIR = ../../bin
 
 CXX=g++
 CXXFLAGS=$(G) -fPIC -I$(INC_DIR)
@@ -28,6 +29,9 @@ $(TARGET) : $(OBJS)
 	$(CXX) -o $@ $(OBJS) $(LDFLAGS) $(LDLIBS)
 	$(RM) lib$(TARGET)
 	$(CP) $(TARGET) lib$(TARGET)
+
+install: $(TARGET)
+	$(CP) $(TARGET) lib$(TARGET) $(BIN_DIR)/
 
 clean:
 	$(RM) $(OBJS)
