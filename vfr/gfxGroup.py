@@ -135,10 +135,17 @@ class GfxGroup(Group, GfxNode):
             return
         if self.getNodeById(tgt) == None:
             return
+
+        # transformation matrix
         self.applyMatrix();
+
+        # call renderFeedBack of children
         for c in self._children:
             c.renderFeedBack(tgt)
+
+        # un-apply matrix
         self.unApplyMatrix()
+
         return
 
     def addChild(self, node):

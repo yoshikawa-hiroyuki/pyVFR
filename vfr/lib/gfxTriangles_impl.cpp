@@ -21,15 +21,17 @@ VFR_API int gfxTriangles_DrawTrias(int nv, float* vtx,
 
   int i, v, n, c, f, nFace = nv / 3;
   if ( fbk ) {
+    float vcolor[4];
     v = 0;
+    glBegin(GL_TRIANGLES);
     for ( f = 0; f < nFace; f++ ) {
-      glPassThrough((GLfloat)f);
-      glBegin(GL_TRIANGLES);
+      id_to_rgba(f+1, vcolor); // offset id
+      glColor4fv(vcolor);
       for ( i = 0; i < 3; i++ ) {
 	glVertex3fv(&vtx[v*3]); v++;
       }
-      glEnd();
     } // end of for(i)
+    glEnd();
   }
   else {
     if ( ntype == AT_WHOLE && nn > 0 )

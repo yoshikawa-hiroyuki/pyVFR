@@ -56,7 +56,11 @@ VFR_API int gfxVectors_DrawVectors(int nv, float* vtx,
       break;
     }
 
-    if ( fbk ) glPassThrough((GLfloat)i);
+    if ( fbk ) {
+      float vcolor[4];
+      id_to_rgba(i+1, vcolor); // offset id
+      glColor4fv(vcolor);
+    }
     glBegin(GL_LINES);
     glVertex3fv(pit.m_v);
     glVertex3fv(tip.m_v);

@@ -868,36 +868,26 @@ class GfxNode(Node, Obj):
         """
         if not self._id == tgt:
             return
+        if self.nVerts <= 0:
+            return
 
         # transformation matrix
         self.applyMatrix()
 
+        # apply material
+        if self._useLocalMaterial:
+            glPointSize(self._pointSize)
+            glLineWidth(self._lineWidth)
+
         # call gfxNode_DrawPoints
-        if self.nVerts > 0:
-            ret = vfr_impl.gfxNode_DrawPoints(self.nVerts, self._verts,
-                                              0, None,  0, 1)
-            if ret == 0: pass
+        ret = vfr_impl.gfxNode_DrawPoints(self.nVerts, self._verts,
+                                          0, None, 0, 1)
+        if ret == 0: pass
 
         # un-apply matrix
         self.unApplyMatrix()
+        
         return
-
-    def getFeedbackSize(self):
-        """
-        フィードバックサイズファクターを返す
-        フィードバックテスト結果格納に必要なサイズを算出するための基準値を
-        返します．
-        """
-        fbs = 0
-        try:
-            if self._feedbackMode == FB_FACE or self._feedbackMode == FB_EDGE:
-                fbs = (self.nIndices + self.nVerts) * \
-                    GfxNode.FEEDBACK_SIZE_FACTOR
-            else:
-                fbs = self.nVerts * GfxNode.FEEDBACK_SIZE_FACTOR
-        except:
-            pass
-        return fbs
 
     #-------- bbox interface --------
     def setBbox(self, min, max):

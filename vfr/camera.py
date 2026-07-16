@@ -694,12 +694,12 @@ class Camera(Base):
         # not relaxed
         if len(self._selected) > 0: return -1
 
-        # context
-        self._da._canvas.SetCurrentCtx()
-
         # Get Viewport of Screen
         if self._da == None: return -1
         Viewp = self._da._viewport
+
+        # context
+        self._da._canvas.SetCurrentCtx()
 
         #---- Rendering for selection ----
         glClearColor(0.0, 0.0, 0.0, 0.0)
@@ -720,6 +720,7 @@ class Camera(Base):
         glDisable(GL_POINT_SMOOTH) # <-disable smoothing
         glPolygonOffset(1.0, 0.000001)
         glEnable(GL_POLYGON_OFFSET_FILL)
+        glDisable(GL_BLEND)
 
         # camera projection
         asp = 1.0 if Viewp[3] < 1 else float(Viewp[2]) / float(Viewp[3])
@@ -753,19 +754,18 @@ class Camera(Base):
         b = p_arr[:, 2].astype(int)
         id_arr = r + g * 256 + b * 256 * 256
 
-        # sort id list(not 0) via depth
-        mask = id_arr != 0
+        # sort id list(> 0) via depth
+        mask = id_arr > 0
         ids = id_arr[mask]
         ds = d_arr[mask]
         order = np.argsort(ds)
         self._selected = ids[order]
 
-        # redraw
-        
+        # need redraw?
         return len(self._selected)
 
     def feedback(self, cx, cy, w, h, target):
-        """do OpenGL feedback
+        """
         フィードバックテスト
         フィードバックテストを実行し、ヒットしたエレメント数を返します.
         エラーの場合は-1を返します.
@@ -785,103 +785,80 @@ class Camera(Base):
         # Get Viewport of Screen
         if self._da == None: return -1
         Viewp = self._da._viewport
-        x = Viewp[0] + cx
-        y = Viewp[1] + Viewp[3] - cy
 
-        # Alloc FeedBack Buffer
+        # context
+        self._da._canvas.SetCurrentCtx()
+
+        # check feedback target
         tobj = self.getNodeById(target)
         if tobj == None: return -1
         NumVerts = tobj.getNumVerts()
         NumIndices = tobj.getNumIndices()
         if NumVerts < 1 and NumIndices < 1: return 0
-        feedBufSize = tobj.getFeedbackSize()
-        fbkType = tobj._feedbackMode
 
-        # Go FeedBack
-        glFeedbackBuffer(feedBufSize, GL_3D)
-        glRenderMode(GL_FEEDBACK)
+        #---- Rendering for feedback ----
+        glClearColor(0.0, 0.0, 0.0, 0.0)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
+        # set viewport
+        glEnable(GL_SCISSOR_TEST)
+        glViewport(Viewp[0], Viewp[1], Viewp[2], Viewp[3])
+        glScissor(Viewp[0], Viewp[1], Viewp[2], Viewp[3])
+
+        # set OpenGL modes
+        glDepthFunc(GL_LEQUAL)
+        glEnable(GL_DEPTH_TEST)
+        glDisable(GL_LIGHTING) # <- disable Lighting
+        glEnable(GL_NORMALIZE)
+        glEnable(GL_LINE_STIPPLE)
+        glDisable(GL_LINE_SMOOTH) # <- disable smoothing
+        glDisable(GL_POINT_SMOOTH) # <-disable smoothing
+        glPolygonOffset(1.0, 0.000001)
+        glEnable(GL_POLYGON_OFFSET_FILL)
+        glDisable(GL_BLEND)
+
+        # camera projection
+        asp = 1.0 if Viewp[3] < 1 else float(Viewp[2]) / float(Viewp[3])
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
-        gluPickMatrix(x, y, w, h, Viewp)
-        self.projection(float(Viewp[2])/float(Viewp[3]))
+        self.projection(asp)
 
+        # model coordinates
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
         self._frustum.ApplyModelview()
 
+        # scene rendering for feedback
         if self._scene:
             self._scene.renderFeedBack(target)
-
-        if self._front:
-            glMatrixMode(GL_MODELVIEW)
-            glPushMatrix()
-            glLoadIdentity()
-            psz = self._da.getSize()
-            if psz.y <= 0: asp = 1.0
-            else:          asp = float(psz.x) / float(psz.y)
-            glOrtho(-asp, asp, -1.0, 1.0, -50.0, 50.0)
-            self._front.renderFeedBack(target)
-            glPopMatrix()
-
         glFlush()
 
-        """ glGetError not ported to PyOpenGL, raise exception.
-        """
+        # read pixel color+alpha and depth
+        halfw = int(w/2)
+        halfh = int(h/2)
+        pixel = glReadPixels(cx -halfw, cy -halfh, w, h, \
+                             GL_RGBA, GL_UNSIGNED_BYTE)
+        depth = glReadPixels(cx -halfw, cy -halfh, w, h, \
+                             GL_DEPTH_COMPONENT, GL_FLOAT)
+        p_arr = pixels_to_numpy(pixel, w, h, 4)
+        d_arr = depth_to_numpy(depth, w, h)
 
-        feedBuf = glRenderMode(GL_RENDER)
-        hits = len(feedBuf)
-        if hits < 1: return 0
+        # generate id list from color list
+        r = p_arr[:, 0].astype(int)
+        g = p_arr[:, 1].astype(int)
+        b = p_arr[:, 2].astype(int)
+        a = p_arr[:, 3].astype(int)
+        id_arr = r + g * 256 + b * 256 * 256 + a * 256 * 256 * 256
 
-        count = 0
-        for x in feedBuf:
-            token = x[0]
-            value = x[1:]
-            if (token == GL_POINT_TOKEN and fbkType == FB_VERTEX) or \
-                    (token == GL_LINE_TOKEN and fbkType == FB_EDGE) or \
-                    (token == GL_LINE_RESET_TOKEN and fbkType == FB_EDGE) or \
-                    (token == GL_POLYGON_TOKEN and fbkType == FB_FACE) :
-                count += 1
-        if count < 1: return 0
-  
-        distbuf = {}
-        getPath = False
-        getId = -1
-        for x in feedBuf:
-            token = x[0]
-            value = x[1:]
-            if token == GL_PASS_THROUGH_TOKEN:
-                getPath = True
-                getId = int(value[0])
-            elif getPath and getId >= 0 and ( \
-                (token == GL_POINT_TOKEN and fbkType == FB_VERTEX) or
-                (token == GL_LINE_TOKEN and fbkType == FB_EDGE) or
-                (token == GL_LINE_RESET_TOKEN and fbkType == FB_EDGE) or
-                (token == GL_POLYGON_TOKEN and fbkType == FB_FACE) ):
-                if fbkType == FB_VERTEX:
-                    distbuf[getId] = value[0].vertex[2]
-                elif fbkType == FB_EDGE:
-                    distbuf[getId] = (value[0].vertex[2]
-                                      + value[1].vertex[2]) * 0.5
-                elif fbkType == FB_FACE and len(value) > 0:
-                    zval = 0.0
-                    for v in value:
-                        zval += v.vertex[2]
-                    distbuf[getId] = zval / len(value)
-                else:
-                    distbuf[getId] = 1.0
-                getPath = False
-                getId = -1
-            else:
-                getPath = False
-                getId = -1
-        distbuf = list(zip(distbuf.values(), distbuf.keys()))
-        distbuf.sort()
+        # sort id list(> 0) via depth
+        mask = id_arr > 0
+        ids = id_arr[mask]
+        ds = d_arr[mask]
+        order = np.argsort(ds)
+        self._feedbacked = ids[order]
+        self._feedbacked = self._feedbacked - 1 # un-offset id
 
-        self._feedbacked = [0 for i in range(len(distbuf))]
-        for i in range(len(self._feedbacked)):
-            self._feedbacked[i] = distbuf[i][1]
-        del distbuf, feedBuf
+        # need redraw?
         return len(self._feedbacked)
 
 

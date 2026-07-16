@@ -19,18 +19,20 @@ VFR_API int gfxMesh2D_DrawMeshFace(int nv, float* vtx,
 
   int i, j, index, findex = 0;
   if ( fbk ) {
+    float vcolor[4];
+    glBegin(GL_QUADS);
     for ( j = 0; j < n -1; j++ ) {
       for ( i = 0; i < m -1; i++ ) {
-        glPassThrough((GLfloat)findex);
-        glBegin(GL_QUADS);
+	id_to_rgba(findex+1, vcolor); // offset id
+	glColor4fv(vcolor);
         glVertex3fv(&vtx[(j*m + i)*3]);
         glVertex3fv(&vtx[(j*m + i+1)*3]);
         glVertex3fv(&vtx[((j+1)*m + i+1)*3]);
         glVertex3fv(&vtx[((j+1)*m + i)*3]);
-        glEnd();
         findex++;
       }
     }
+    glEnd();
     return 1;
   }
 
@@ -95,31 +97,34 @@ VFR_API int gfxMesh2D_DrawMeshEdge(int nv, float* vtx,
   int i, j, index, findex;
 
   if ( fbk ) {
+    float vcolor[4];
     findex = 0;
 
+    glBegin(GL_LINES);
+    
     // Holizontal Lines
     for ( j = 0; j < n; j++ ) {
       for ( i = 0; i < m -1; i++ ) {
-        glPassThrough((GLfloat)findex);
-        glBegin(GL_LINES);
+	id_to_rgba(findex+1, vcolor); // offset id
+	glColor4fv(vcolor);
         glVertex3fv(&vtx[(j*m + i)*3]);
         glVertex3fv(&vtx[(j*m + i+1)*3]);
-        glEnd();
         findex++;
       }
     }
     // Vartical Lines
     for ( i = 0; i < m; i++ ) {
       for ( j = 0; j < n -1; j++ ) {
-        glPassThrough((GLfloat)findex);
-        glBegin(GL_LINES);
+	id_to_rgba(findex+1, vcolor); // offset id
+	glColor4fv(vcolor);
         glVertex3fv(&vtx[(j*m + i)*3]);
         glVertex3fv(&vtx[((j+1)*m + i)*3]);
-        glEnd();
         findex++;
       }
     }
 
+    glEnd();
+    
     return 1;
   }
 

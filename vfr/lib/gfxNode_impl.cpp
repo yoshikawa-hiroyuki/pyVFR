@@ -38,12 +38,14 @@ VFR_API int gfxNode_DrawPoints(int nv, float* vtx,
 
   int i;
   if ( fbk ) {
+    float vcolor[4];
+    glBegin(GL_POINTS);
     for ( i = 0; i < nv; i++ ) {
-      glPassThrough((GLfloat)i);
-      glBegin(GL_POINTS);
+      id_to_rgba(i+1, vcolor); // offset id
+      glColor4fv(vcolor);
       glVertex3fv(&vtx[i*3]);
-      glEnd();
     } // end of for(i)
+    glEnd();
   }
   else if ( sym > SYM_NORMAL && sym <= SYM_TRIAFILL ) {
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -80,15 +82,17 @@ VFR_API int gfxNode_DrawLines(int nv, float* vtx,
 
   int i, v, c, e, nEdge = nv / 2;
   if ( fbk ) {
+    float vcolor[4];
     v = 0;
+    glBegin(GL_LINES);
     for ( e = 0; e < nEdge; e++ ) {
-      glPassThrough((GLfloat)e);
-      glBegin(GL_LINES);
+      id_to_rgba(e+1, vcolor); // offset id
+      glColor4fv(vcolor);
       for ( i = 0; i < 2; i++ ) {
 	glVertex3fv(&vtx[v*3]); v++;
       }
-      glEnd();
     } // end of for(i)
+    glEnd();
   }
   else {
     v = c = 0;
@@ -122,20 +126,21 @@ VFR_API int gfxNode_DrawLineStrip(int nv, float* vtx,
 
   int i;
   if ( fbk ) {
+    float vcolor[4];
+    glBegin(GL_LINES);
     for ( i = 0; i < nv -1; i++ ) {
-      glPassThrough((GLfloat)i);
-      glBegin(GL_LINES);
+      id_to_rgba(i+1, vcolor); // offset id
+      glColor4fv(vcolor);
       glVertex3fv(&vtx[i*3]);
       glVertex3fv(&vtx[(i+1)*3]);
-      glEnd();
     } // end of for(i)
     if ( loop ) {
-      glPassThrough((GLfloat)(nv-1));
-      glBegin(GL_LINES);
+      id_to_rgba(nv, vcolor); // offset id
+      glColor4fv(vcolor);
       glVertex3fv(&vtx[(nv-1)*3]);
       glVertex3fv(&vtx[0]);
-      glEnd();
     }
+    glEnd();
   }
   else {
     i = 0;
