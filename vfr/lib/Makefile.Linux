@@ -10,7 +10,7 @@ OBJS = drawArea_impl.o \
      obj_impl.o \
      obj_io_impl.o \
 
-INC_DIR = 
+INC_DIR = .
 BIN_DIR = ../../bin
 
 CXX=g++

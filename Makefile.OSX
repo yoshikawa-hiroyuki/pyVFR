@@ -1,2 +1,0 @@
-g++ -g -fPIC -c -I../../vfr/lib   -c -o vsnIsosurf.o vsnIsosurf.cpp
-g++ -o vsn_impl.dylib vsnIsosurf.o ../../vfr/lib/obj_impl.cpp -dynamiclib -g -fPIC -framework OpenGL
