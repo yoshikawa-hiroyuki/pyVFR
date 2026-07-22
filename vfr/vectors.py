@@ -68,6 +68,35 @@ class Vectors(GfxNode):
         self.showZero = True if not 'showZero' in args else args['showZero']
         return
 
+    def setHeadMode(self, show =None, scale =None, width =None):
+        changed = False
+        if not show is None and self.showHead != show:
+            self.showHead = show
+            changed = True
+        if not scale is None and self.headScale != scale:
+            self.headScale = scale
+            if self.showHead:
+                changed = True
+        if not width is None and self.headWidth != width:
+            self.headWidth = width
+            if self.showHead:
+                changed = True
+        if changed:
+            self.notice()
+        return
+
+    def setScaleFactor(self, factor):
+        if self.scaleFactor != factor:
+            self.scaleFactor = factor
+            self.notice()
+        return
+
+    def setShowZero(self, mode):
+        if self.showZero != mode:
+            self.showZero = mode
+            self.notice()
+        return
+
     def renderWire(self):
         """
         ワイヤーフレームレンダリング

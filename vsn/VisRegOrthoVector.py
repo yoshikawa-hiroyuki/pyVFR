@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-VisRegOrthoSlice
+VisRegOrthoVector
 """
 import sys, os
 import numpy as np
@@ -12,47 +12,46 @@ from VisRegularMesh import *
 
 
 #----------------------------------------------------------------------
-class VisRegOrthoSlice(VisRegularMesh):
-    """ VisRegOrthoSliceクラス
-        show orthogonal slice of regular mesh 
+class VisRegOrthoVector(VisRegularMesh):
+    """ VisRegOrthoVectorクラス
+        show orthogonal slice of regular mesh vector data 
     """
-
-    (S_Za, S_Ya, S_Xa) = range(3)
 
     def __init__(self, **args):
         """
         args: data =None, bbox =None, orgPitch =None, coord =None,
-              slicePlane =VisRegOrthoSlice.S_Za, sliceIndex =None,
-              showMap =True, showMeshLine =False, lineWidth =1.0, minMax =None
+              slicePlane =VisRegularMesh.S_Za, sliceIndex =None, useLut =True,
+              showHead =True, lineWidth =1.0, minMax =None, vecScale =1.0
         """
         VisRegularMesh.__init__(self, **args)
-
-        self.p_data = None
-        self._slicePlane = VisRegOrthoSlice.S_Za
-        self._sliceIndex = -1
-        self._showMap = True
-        self._showMeshLine = False
+        self.showType = gfxNode.RT_WIRE
         
-        self._mesh = mesh.Mesh2D(name='OrthoSlice_Mesh', localMaterial=False)
-        self._mesh.setNormalMode(gfxNode.AT_PER_FACE)
-        self._mesh.setColorMode(gfxNode.AT_PER_VERTEX)
-        self.addChild(self._mesh)
+        self.p_data = None
+        self._slicePlane = VisRegularMesh.S_Za
+        self._sliceIndex = -1
+        self._showHead = True
+        self._vecScale = 1.0
+        self._useLut = True
+
+        self._arrows = vectors.Vectors(name='OrthoVector_Arrow',
+                                       localMaterial=False)
+        self.addChild(self._arrows)
 
         if self.update(**args):
             self.show = True
         return
 
     def getVisObjType(self):
-        return "OrthoSlice"
+        return "OrthoVector"
 
     def setData(self, data, forceUpd=True, minmaxUpd=True):
-        return VisRegularMesh.setScalarData(self, data, forceUpd, minmaxUpd)
-        
+        return VisRegularMesh.setVectorData(self, data, forceUpd, minmaxUpd)
+
     def setSliceParam(self, slicePlane=-1, sliceIndex=-1, forceUpd=True):
         if forceUpd:
             self._needUpdate = True
-        if slicePlane in (VisRegOrthoSlice.S_Za, VisRegOrthoSlice.S_Xa,
-                          VisRegOrthoSlice.S_Ya):
+        if slicePlane in (VisRegularMesh.S_Za, VisRegularMesh.S_Xa,
+                          VisRegularMesh.S_Ya):
             if slicePlane != self._slicePlane:
                 self._slicePlane = slicePlane
                 self._needUpdate = True
@@ -61,27 +60,36 @@ class VisRegOrthoSlice(VisRegularMesh):
             self._needUpdate = True
         return True
 
-    def setShowMode(self, showMap=True, showMeshLine=False, forceUpd=True):
+    def setShowMode(self, showHead=True, vecScale=1.0, useLut=True,
+                    forceUpd=True):
         if forceUpd:
             self._needUpdate = True
-        if self._showMap != showMap:
-            self._showMap = showMap
-            self._needUpdate = True
-        if self._showMeshLine != showMeshLine:
-            self._showMeshLine = showMeshLine
+        if self._showHead != showHead:
+            self._showHead = showHead
+            if not self._arrows is None:
+                self._arrows.setHeadMode(show=showHead)
+        if self._vecScale != vecScale:
+            self._vecScale = vecScale
+            if not self._arrows is None:
+                self._arrows.setScaleFactor(vecScale)
+        if self._useLut != useLut:
+            self._useLut = useLut
             self._needUpdate = True
         return True
 
     def setBaseColor(self, color):
         """ setBaseColor -- override VisObj.setBaseColor
         """
+        if self._useLut == False:
+            VisObj.setBaseColor(self, color)
+            return
         self._colors[0][0:3] = color[0:3]
         self.notice()
         return
 
     def update(self, **args):
         # check initialized
-        if not self._mesh:
+        if not self._arrows:
             return False
 
         # pickup args
@@ -92,9 +100,11 @@ class VisRegOrthoSlice(VisRegularMesh):
 
         slicePlane = -1 if not 'slicePlane' in args else args['slicePlane']
         sliceIndex = -1 if not 'sliceIndex' in args else args['sliceIndex']
-        showMap = self._showMap if not 'showMap' in args else args['showMap']
-        showMeshLine = self._showMeshLine if not 'showMeshLine' in args \
-            else args['showMeshLine']
+        showHead = self._showHead if not 'showHead' in args \
+            else args['showHead']
+        vecScale = self._vecScale if not 'vecScale' in args \
+            else args['vecScale']
+        useLut = True if not 'useLut' in args else args['useLut']
         lineWidth = -1.0 if not 'lineWidth' in args else args['lineWidth']
 
         if not data is None:
@@ -111,7 +121,7 @@ class VisRegOrthoSlice(VisRegularMesh):
             self.lut.setTo(lut)
             self._needUpdate = True
         self.setSliceParam(slicePlane, sliceIndex, False)
-        self.setShowMode(showMap, showMeshLine, False)
+        self.setShowMode(showHead, vecScale, useLut, False)
         if lineWidth > 0.0:
             self.setLineWidth(lineWidth)
 
@@ -121,13 +131,14 @@ class VisRegOrthoSlice(VisRegularMesh):
         # update mesh coord and data
         p_data = None if self.p_data is None else self.p_data
 
-        if self.p_coord is None:
+        if self.p_coord is None or p_data is None:
             return False
+        max_veclen = np.linalg.norm(self.p_coord, axis=-1).max()
 
         dims = self.p_coord.shape
-        if self._slicePlane == VisRegOrthoSlice.S_Za:
+        if self._slicePlane == VisRegularMesh.S_Za:
             S = dims[0]
-        elif self._slicePlane == VisRegOrthoSlice.S_Xa:
+        elif self._slicePlane == VisRegularMesh.S_Xa:
             S = dims[2]
         else: # S_Ya
             S = dims[1]
@@ -135,54 +146,49 @@ class VisRegOrthoSlice(VisRegularMesh):
             self._sliceIndex = int(S / 2)
         elif self._sliceIndex >= S:
             self._sliceIndex = S -1
-            
-        if self._slicePlane == VisRegOrthoSlice.S_Za:
+
+        if self._slicePlane == VisRegularMesh.S_Za:
             cslice = self.p_coord[self._sliceIndex, :, :, :]
-            if not p_data is None:
-                dslice = p_data[self._sliceIndex, :, :]
-        elif self._slicePlane == VisRegOrthoSlice.S_Xa:
+            dslice = p_data[self._sliceIndex, :, :]
+        elif self._slicePlane == VisRegularMesh.S_Xa:
             cslice = self.p_coord[:, :, self._sliceIndex, :]
-            if not p_data is None:
-                dslice = p_data[:, :, self._sliceIndex]
+            dslice = p_data[:, :, self._sliceIndex]
         else: # S_Ya
             cslice = self.p_coord[:, self._sliceIndex, :, :]
-            if not p_data is None:
-                dslice = p_data[:, self._sliceIndex, :]
+            dslice = p_data[:, self._sliceIndex, :]
 
+        # alloc verts and normals for _arrows
         M, N = (cslice.shape[0], cslice.shape[1])
-        self._mesh.setMeshSize(M, N)
+        nv = M * N
+        self._arrows.alcData(nV=nv, nN=nv)
         for j in range(N):
             for i in range(M):
-                self._mesh._verts[j*M + i][:] = cslice[i, j, :]
-        self._mesh.generateBbox()
-        self._mesh.generateNormals()
-        if not p_data is None:
-            self._mesh.alcData(nC=self._mesh.getNumVerts())
+                self._arrows._verts[j*M + i][:] = cslice[i, j, :]
+                self._arrows._normals[j*M + i][:] = dslice[i, j, :]
+        self._arrows.generateBbox()
+        self._arrows.notice()
+
+        # alloc colors for _arrows
+        if self._useLut:
+            self._arrows.alcData(nC=nv)
             for j in range(N):
                 for i in range(M):
-                    cidx = self.lut.getValIdx(dslice[i, j])
-                    self._mesh._colors[j*M + i][:] = self.lut.entry[cidx, :]
-                    continue # for i
-                continue # for j
-            
-        # update mesh show mode
-        showType = gfxNode.RT_NONE
-        if self._showMeshLine:
-            showType = gfxNode.RT_WIRE
-            self._mesh.setAuxLineColor(True, self._colors[0])
-        if self._showMap and not p_data is None:
-            showType += gfxNode.RT_SMOOTH
-        self._mesh.setRenderMode(showType)
+                    cidx = self.lut.getValIdx(np.linalg.norm(dslice[i, j]))
+                    self._arrows._colors[j*M + i][:] = self.lut.entry[cidx, :]
+            self._arrows.setColorMode(gfxNode.AT_PER_VERTEX)
+        else:
+            self._arrows._colors[0][:] = self._colors[0][:]
+            self._arrows.setColorMode(gfxNode.AT_WHOLE)
 
         self.generateBbox()
         self._needUpdate = False
         return True
-    
+
     def initPP(self):
         if self.paramsPnl is None:
             return False
         self._slicePlaneButtons = []
-
+        
         sizerTop = wx.BoxSizer(orient=wx.VERTICAL)
 
         # slicePlane
@@ -197,7 +203,7 @@ class VisRegOrthoSlice(VisRegularMesh):
             sizerH.Add(rb, flag=wx.ALL, border=3)
             self._slicePlaneButtons.append(rb)
             continue # for i,choice
-        
+
         # sliceIndex
         sizerH = wx.BoxSizer()
         sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
@@ -225,33 +231,45 @@ class VisRegOrthoSlice(VisRegularMesh):
         self._slicePlusBtn.Bind(wx.EVT_BUTTON, self.OnSlicePlusBtn)
         sizerTop.Add(wx.StaticLine(self.paramsPnl, size=wx.Size(3,3)), \
                      flag=wx.EXPAND|wx.ALL, border=0)
-        
-        # showMap
+
+        # showHead
         sizerH = wx.BoxSizer()
         sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
-        self._showMapChk = wx.CheckBox(self.paramsPnl, label='show map')
-        sizerH.Add(self._showMapChk, flag=wx.EXPAND|wx.ALL, proportion=1, \
+        self._showHeadChk = wx.CheckBox(self.paramsPnl, label='show head')
+        sizerH.Add(self._showHeadChk, flag=wx.EXPAND|wx.ALL, proportion=1, \
                    border=3)
-        self._showMapChk.Bind(wx.EVT_CHECKBOX, self.OnShowMapChk)
+        self._showHeadChk.Bind(wx.EVT_CHECKBOX, self.OnShowHeadChk)
         sizerTop.Add(wx.StaticLine(self.paramsPnl, size=wx.Size(3,3)), \
                      flag=wx.EXPAND|wx.ALL, border=0)
 
-        # showMeshLine
+        # vector scale
         sizerH = wx.BoxSizer()
         sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
-        self._showMeshLineChk = wx.CheckBox(self.paramsPnl, \
-                                            label='show mesh line')
-        sizerH.Add(self._showMeshLineChk, flag=wx.EXPAND|wx.ALL, proportion=1, \
+        sizerH.Add(wx.StaticText(self.paramsPnl, label='vector scale'),
                    border=3)
-        self._showMeshLineChk.Bind(wx.EVT_CHECKBOX, self.OnShowMeshLineChk)
+        self._vecScaleTxt = wx.TextCtrl(self.paramsPnl, value='1.0', \
+                                        style=wx.TE_PROCESS_ENTER)
+        sizerH.Add(self._vecScaleTxt, flag=wx.EXPAND|wx.ALL, proportion=1, \
+                   border=3)
+        self._vecScaleTxt.Bind(wx.EVT_TEXT_ENTER, self.OnVecScaleTxt)
 
-        # line_width
-        sizerH.Add(wx.StaticText(self.paramsPnl, label=' width'), border=3)
+        # line width
+        sizerH = wx.BoxSizer()
+        sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
+        sizerH.Add(wx.StaticText(self.paramsPnl, label='line width'), border=3)
         self._lineWidthTxt = wx.TextCtrl(self.paramsPnl, value='1.0', \
                                          style=wx.TE_PROCESS_ENTER)
         sizerH.Add(self._lineWidthTxt, flag=wx.EXPAND|wx.ALL, proportion=1, \
                    border=3)
         self._lineWidthTxt.Bind(wx.EVT_TEXT_ENTER, self.OnLineWidthTxt)
+
+        # useLut
+        sizerH = wx.BoxSizer()
+        sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
+        self._useLutChk = wx.CheckBox(self.paramsPnl, label='use Lut color')
+        sizerH.Add(self._useLutChk, flag=wx.EXPAND|wx.ALL, proportion=1, \
+                   border=3)
+        self._useLutChk.Bind(wx.EVT_CHECKBOX, self.OnUseLutChk)
 
         # sizing
         self.paramsPnl.SetSizer(sizerTop)
@@ -259,23 +277,23 @@ class VisRegOrthoSlice(VisRegularMesh):
         self.paramsPnl.Fit()
 
         return True
-    
+
     def updatePP(self):
         if self.paramsPnl is None or \
            len(self._slicePlaneButtons) < 1 or \
            self._sliceIndexSld is None or self._sliceIndexTxt is None or \
-           self._showMapChk is None or \
-           self._showMeshLineChk is None or self._lineWidthTxt is None:
+           self._showHeadChk is None or self._vecScaleTxt is None or \
+           self._useLutChk is None or self._lineWidthTxt is None:
             return False
 
         # slicePlane
-        if self._slicePlane == VisRegOrthoSlice.S_Ya:
-            self._slicePlaneButtons[VisRegOrthoSlice.S_Ya].SetValue(True)
-        elif self._slicePlane == VisRegOrthoSlice.S_Xa:
-            self._slicePlaneButtons[VisRegOrthoSlice.S_Xa].SetValue(True)
+        if self._slicePlane == VisRegularMesh.S_Ya:
+            self._slicePlaneButtons[VisRegularMesh.S_Ya].SetValue(True)
+        elif self._slicePlane == VisRegularMesh.S_Xa:
+            self._slicePlaneButtons[VisRegularMesh.S_Xa].SetValue(True)
         else:
-            self._slicePlaneButtons[VisRegOrthoSlice.S_Za].SetValue(True)
-        
+            self._slicePlaneButtons[VisRegularMesh.S_Za].SetValue(True)
+
         # sliceIndex
         if not self.p_data is None and len(self.p_data.shape) == 3:
             self._sliceIndexSld.SetRange(0, self.p_data.shape[self._slicePlane])
@@ -284,35 +302,38 @@ class VisRegOrthoSlice(VisRegularMesh):
             self._sliceIndexSld.SetValue(self._sliceIndex)
             self._sliceIndexTxt.SetValue(str(self._sliceIndex))
 
-        # showMap
-        self._showMapChk.SetValue(self._showMap)
+        # showHead
+        self._showHeadChk.SetValue(self._showHead)
 
-        # showMeshLine
-        self._showMeshLineChk.SetValue(self._showMeshLine)
+        # vector scale
+        self._vecScaleTxt.SetValue(str(self._vecScale))
 
-        # line_width
+        # line width
         self._lineWidthTxt.SetValue(str(self.getLineWidth()))
+
+        # useLut
+        self._useLutChk.SetValue(self._useLut)
 
         return True
 
     # Event Handlers
 
     def OnSlicePlaneRadio(self, event):
-        if self.p_data is None or len(self.p_data.shape) != 3:
+        if self.p_data is None or len(self.p_data.shape) != 4:
             return
         new_sliceAxs = None
-        if self._slicePlaneButtons[VisRegOrthoSlice.S_Za].GetValue() == True:
-            new_sliceAxs = VisRegOrthoSlice.S_Za
-        elif self._slicePlaneButtons[VisRegOrthoSlice.S_Ya].GetValue() == True:
-            new_sliceAxs = VisRegOrthoSlice.S_Ya
-        elif self._slicePlaneButtons[VisRegOrthoSlice.S_Xa].GetValue() == True:
-            new_sliceAxs = VisRegOrthoSlice.S_Xa
+        if self._slicePlaneButtons[VisRegularMesh.S_Za].GetValue() == True:
+            new_sliceAxs = VisRegularMesh.S_Za
+        elif self._slicePlaneButtons[VisRegularMesh.S_Ya].GetValue() == True:
+            new_sliceAxs = VisRegularMesh.S_Ya
+        elif self._slicePlaneButtons[VisRegularMesh.S_Xa].GetValue() == True:
+            new_sliceAxs = VisRegularMesh.S_Xa
         if new_sliceAxs is None:
-            new_sliceAxs = VisRegOrthoSlice.S_Za
-            self._slicePlaneButtons[VisRegOrthoSlice.S_Za].GetValue(True)
+            new_sliceAxs = VisRegularMesh.S_Za
+            self._slicePlaneButtons[VisRegularMesh.S_Za].GetValue(True)
         if self._slicePlane == new_sliceAxs:
             return
-        
+
         if self.setSliceParam(slicePlane=new_sliceAxs):
             self._sliceIndexSld.SetRange(0, self.p_data.shape[self._slicePlane])
             if self.update():
@@ -320,7 +341,7 @@ class VisRegOrthoSlice(VisRegularMesh):
         return
 
     def OnSliceIndexSld(self, event):
-        if self.p_data is None or len(self.p_data.shape) != 3:
+        if self.p_data is None or len(self.p_data.shape) != 4:
             return
         val = self._sliceIndexSld.GetValue()
         if val == self._sliceIndex:
@@ -332,7 +353,7 @@ class VisRegOrthoSlice(VisRegularMesh):
         return
 
     def OnSliceIndexTxt(self, event):
-        if self.p_data is None or len(self.p_data.shape) != 3:
+        if self.p_data is None or len(self.p_data.shape) != 4:
             return
         try:
             val = int(self._sliceIndexTxt.GetValue())
@@ -348,7 +369,7 @@ class VisRegOrthoSlice(VisRegularMesh):
         return
 
     def OnSliceMinusBtn(self, event):
-        if self.p_data is None or len(self.p_data.shape) != 3:
+        if self.p_data is None or len(self.p_data.shape) != 4:
             return
         if self.setSliceParam(sliceIndex=self._sliceIndex -1):
             self._sliceIndexSld.SetValue(self._sliceIndex)
@@ -358,7 +379,7 @@ class VisRegOrthoSlice(VisRegularMesh):
         return
 
     def OnSlicePlusBtn(self, event):
-        if self.p_data is None or len(self.p_data.shape) != 3:
+        if self.p_data is None or len(self.p_data.shape) != 4:
             return
         if self.setSliceParam(sliceIndex=self._sliceIndex +1):
             self._sliceIndexSld.SetValue(self._sliceIndex)
@@ -367,19 +388,22 @@ class VisRegOrthoSlice(VisRegularMesh):
                 self.chkNotice()
         return
 
-    def OnShowMapChk(self, event):
-        val = self._showMapChk.GetValue()
-        if val == self._showMap:
+    def OnShowHeadChk(self, event):
+        val = self._showHeadChk.GetValue()
+        if val == self._showHead:
             return
-        if self.update(showMap=val):
+        if self.update(showHead=val):
             self.chkNotice()
         return
 
-    def OnShowMeshLineChk(self, event):
-        val = self._showMeshLineChk.GetValue()
-        if val == self._showMeshLine:
+    def OnVecScaleTxt(self, event):
+        try:
+            val = float(self._vecScaleTxt.GetValue())
+        except:
+            wx.MessageBox('Invalid value specified.', 'Error', style=wx.OK)
+            self.updatePP()
             return
-        if self.update(showMeshLine=val):
+        if self.update(vecScale=val):
             self.chkNotice()
         return
 
@@ -398,7 +422,15 @@ class VisRegOrthoSlice(VisRegularMesh):
             self.setLineWidth(val)
             self.chkNotice()
         return
-    
+
+    def OnUseLutChk(self, event):
+        val = self._useLutChk.GetValue()
+        if val == self._useLut:
+            return
+        if self.update(useLut=val):
+            self.chkNotice()
+        return
+
 
 if __name__ == '__main__':
     from pySPH import SPH
@@ -406,25 +438,21 @@ if __name__ == '__main__':
     import App
     app = App.GetVsnApp()
     arena = app.getArena()
-    
+
     sph = SPH.SPH()
-    sph.load(os.path.join("data", "p_010.sph"))
-    print(f"dims={sph.dims}")
-    print(f"org={sph.org}")
-    print(f"pitch={sph.pitch}")
+    sph.load(os.path.join("data", "uvw_010.sph"))
     gro = [sph.org[0] + sph.pitch[0]*(sph.dims[0]-1),
            sph.org[1] + sph.pitch[1]*(sph.dims[1]-1),
            sph.org[2] + sph.pitch[2]*(sph.dims[2]-1)]
-    print(f"gro={gro}")
 
-    oslicer = VisRegOrthoSlice(name='TestOrthoSlice', data=sph.dataIndexed(),
+    oslicer = VisRegOrthoVector(name='TestOrthoVector', data=sph.dataIndexed(),
     #                           orgPitch=[sph.org, sph.pitch])
-                               bbox=[sph.org, gro])
+                                bbox=[sph.org, gro])
     arena.addObject(oslicer)
 
     bounds = VisRegBounds(name='TestBounds', data=sph.dataIndexed(),
                           orgPitch=[sph.org, sph.pitch])
     arena.addObject(bounds)
 
-    #app.run_console()
     app.run(debug=True)
+    

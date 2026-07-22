@@ -147,6 +147,7 @@ class VisRegOrthoScalar(VisRegularMesh):
             if not p_data is None:
                 dslice = p_data[:, self._sliceIndex, :]
 
+        # alloc verts for _mesh
         M, N = (cslice.shape[0], cslice.shape[1])
         self._mesh.setMeshSize(M, N)
         for j in range(N):
@@ -154,6 +155,8 @@ class VisRegOrthoScalar(VisRegularMesh):
                 self._mesh._verts[j*M + i][:] = cslice[i, j, :]
         self._mesh.generateBbox()
         self._mesh.generateNormals()
+
+        # alloc colors for _mesh
         if not p_data is None:
             self._mesh.alcData(nC=self._mesh.getNumVerts())
             for j in range(N):

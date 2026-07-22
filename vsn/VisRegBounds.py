@@ -16,17 +16,12 @@ class VisRegBounds(VisRegularMesh):
     """ VisRegBoundsクラス
         show region bound lines
     """
-
-    (BOUNDS_NONE, BOUNDS_BY_DATA, BOUNDS_BY_BBOX, BOUNDS_BY_COORD) = range(4)
-    
-
     def __init__(self, **args):
         """
         args: data =None, bbox =None, coord =None, lineWidth =1.0
         """
         VisRegularMesh.__init__(self, **args)
         self.showType = gfxNode.RT_WIRE
-        self.mode = VisRegBounds.BOUNDS_NONE
         self._lineWidthTxt = None
         self.p_data = None
         
@@ -172,7 +167,6 @@ class VisRegBounds(VisRegularMesh):
 
         ls.generateBbox()
         self.addChild(ls)
-        self.mode = VisRegBounds.BOUNDS_BY_DATA
         self._needUpdate = True
         return
 
@@ -197,7 +191,6 @@ class VisRegBounds(VisRegularMesh):
             continue
         ls.generateBbox()
         self.addChild(ls)
-        self.mode = VisRegBounds.BOUNDS_BY_BBOX
         self._needUpdate = True
         return
 
@@ -322,7 +315,6 @@ class VisRegBounds(VisRegularMesh):
             continue
         ls.generateBbox()
         self.addChild(ls)
-        self.mode = VisRegBounds.BOUNDS_BY_COORD
         self._needUpdate = True
         return
 

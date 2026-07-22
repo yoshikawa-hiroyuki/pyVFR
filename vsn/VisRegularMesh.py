@@ -17,6 +17,9 @@ class VisRegularMesh(VisObj):
         Base class of VisObj for regular mesh
     """
 
+    # slice axes
+    (S_Za, S_Ya, S_Xa) = range(3)
+
     def __init__(self, **args):
         VisObj.__init__(self, **args)
         
