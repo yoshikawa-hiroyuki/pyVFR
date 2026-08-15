@@ -1,7 +1,8 @@
 # makefile for impl
 G=-g
 TARGET = vsn_impl.so
-OBJS = vsnIsosurf.o \
+OBJS =	vsnIsosurf.o \
+	vsnInterpolate..o \
 
 VFR_LIBDIR = ../../vfr/lib
 
