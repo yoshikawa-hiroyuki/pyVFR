@@ -116,7 +116,7 @@ class PrimSet(GfxNode):
         バウンディングボックス再計算
         """
         if not self._prim:
-            Node.generateBbox()
+            Obj.generateBbox(self)
             return
 
         if self.nVerts < 1:

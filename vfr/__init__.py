@@ -22,6 +22,7 @@ __all__ = [
     "node",
     "obj",
     "primitives",
+    "primSet",
     "scene",
     "triangles",
     "utilMath",
