@@ -104,6 +104,7 @@ class VisSampler(VisObj):
             pos[2] += dz
             continue # k
         self._ptSet.generateBbox()
+        self._ptSet.notice()
 
         # update show mode
         showType = gfxNode.RT_NONE
