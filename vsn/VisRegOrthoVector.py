@@ -295,7 +295,7 @@ class VisRegOrthoVector(VisRegularMesh):
             self._slicePlaneButtons[VisRegularMesh.S_Za].SetValue(True)
 
         # sliceIndex
-        if not self.p_data is None and len(self.p_data.shape) == 3:
+        if not self.p_data is None and len(self.p_data.shape) == 4:
             self._sliceIndexSld.SetRange(0, self.p_data.shape[self._slicePlane])
             if self._sliceIndex < 0:
                 self._sliceIndex = int(self.p_data.shape[self._slicePlane]/2)
