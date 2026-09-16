@@ -5,14 +5,7 @@
 #define _VSN_INTERPOLATE_H_
 
 #include <deque>
-#include "obj_impl.h"
-
-namespace VSN {
-  // double vertex type
-  typedef double DVec3[3];
-  typedef double DVec4[4];
-  typedef double DMat3[3][3];
-};
+#include "vsn_impl.h"
 
 //----------------------------------------------------------------
 // class vsnInterpolate

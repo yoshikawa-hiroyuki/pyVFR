@@ -3,6 +3,7 @@ G=-g
 TARGET = vsn_impl.so
 OBJS =	vsnIsosurf.o \
 	vsnInterpolate..o \
+	vsnStreamLines.o \
 
 VFR_LIBDIR = ../../vfr/lib
 

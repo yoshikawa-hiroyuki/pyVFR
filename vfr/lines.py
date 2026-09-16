@@ -210,3 +210,114 @@ class LineStrip(GfxNode):
         # end display-list definition
         self.endDispList(DLF_WIRE)
         return
+
+
+#----------------------------------------------------------------------
+class LineStripSet(GfxNode):
+    """
+    連結線分集合クラス
+    LinesStripSetクラスは、複数の連結線分を描画するシーングラフノードクラスです．
+    与えられた頂点集合を順に直線で連結して描画を行います．
+    各連結線分の頂点数は、インデックス配列の値を参照します．インデックス配列が空の
+    場合は、連結線分は描画されません.
+    ループモードがTRUEの場合は、各連結線分の先頭の頂点と最後の頂点を連結し、
+    閉多角形を描画します．
+      loopMode: ループモード
+    """
+
+    def __init__(self, **args):
+        """
+        args: loop =False
+        """
+        GfxNode.__init__(self, **args)
+        self._renderMode = RT_WIRE
+        self.loopMode = False if not 'loop' in args else args['loop']
+        return
+
+    def renderFeedBack(self, tgt):
+        """
+        フィードバックテストのためのレンダリングを行います.
+        指定されたターゲットIDが自分自身のID番号と異なる場合は何もしません．
+        フィードバックテストモード(_feedbackMode)の値に応じ以下の動作をします．
+        FB_VERTEX
+          登録されている頂点順に0から付番された番号でフィードバックテストの
+          結果を返す.
+        FB_EDGE
+          描画される順序で連結線分に0から付番された番号でフィードバックテストの
+          結果を返す.
+        FB_FACE
+          フィードバックテストは常に合格数 0 を返す.
+        - tgt: フィードバックターゲットノードのID
+        """
+        if not self._id == tgt:
+            return
+
+        self.applyMatrix()
+        glDisable(GL_LIGHTING)
+
+        if self._feedbackMode == FB_VERTEX:
+            # call gfxNode_DrawPoints
+            if self.nVerts > 0:
+                ret = vfr_impl.gfxNode_DrawPoints(self.nVerts, self._verts,
+                                                  0, None,  0, 1)
+                if ret == 0: pass
+        elif self._feedbackMode == FB_EDGE:
+            # call gfxNode_DrawLineStrip (not feedback mode)
+            vidx = 0
+            for i in range(self.nIndices):
+                if self._indices[i] < 2:
+                    continue
+                idcxol = id_to_rgba(i)
+                glColor4fv(idcxol)
+                ret = vfr_impl.gfxNode_DrawLineStrip(self._indices[i],
+                                                     self._verts[vidx:],
+                                                     0, None,  0,
+                                                     self.loopMode, 0)
+                if ret == 0: pass
+                vidx += self._indices[i]
+                continue # end of for(i)
+        else:
+            # do nothing.
+            pass
+
+        glEnable(GL_LIGHTING)
+        self.unApplyMatrix()
+        return
+
+    def renderWire(self):
+        """
+        ワイヤーフレームレンダリング
+        """
+        if self.nVerts < 2 or self.nIndices < 1:
+            return
+
+        # display-list check
+        if self.beginDispList(DLF_WIRE): return
+
+        # draw linestrips via gfxNode_DrawLineStrip
+        if self._colorMode == AT_PER_VERTEX and not self._useAuxLineColor:
+            nc = self.nColors
+            col = self._colors
+        else:
+            nc = 0
+            col = None
+        vidx = 0
+        for i in range(self.nIndices):
+            if self._indices[i] < 2:
+                continue
+            if self._colorMode == AT_PER_FACE:
+                if i < self.nColors:
+                    glColor4fv(self._colors[i])
+            ret = vfr_impl.gfxNode_DrawLineStrip(self._indices[i],
+                                                 self._verts[vidx:],
+                                                 self.nColors, self._colors,
+                                                 self._colorMode,
+                                                 self.loopMode, 0)
+            if ret == 0: pass
+            vidx += self._indices[i]
+            continue # end of for(i)
+
+        # end display-list definition
+        self.endDispList(DLF_WIRE)
+        return
+    

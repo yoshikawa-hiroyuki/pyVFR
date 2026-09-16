@@ -27,14 +27,7 @@
 #ifndef _VSN_ISOSURF_H_
 #define _VSN_ISOSURF_H_
 
-#include "obj_impl.h"
-
-inline void* Allocate(size_t size) {return malloc(size);}
-inline void  DeAllocate(void *ptr) {free(ptr);}
-inline void* CeAllocate(size_t nelem,size_t elsize) {
-  return calloc(nelem, elsize);}
-inline void* ReAllocate(void *ptr,size_t size) {return realloc(ptr, size);}
-inline char* StrDuplicate(const char *string) {return strdup(string);}
+#include "vsn_impl.h"
 
 
 class vsnIsosurf {

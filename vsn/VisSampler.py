@@ -13,6 +13,15 @@ from vfr import *
 from VisObj import *
 
 #----------------------------------------------------------------------
+class SampleReceiver(node.Node):
+    def __init__(self, **args):
+        node.Node.__init__(self, **args)
+        return
+
+    def receive(self, sampler):
+        pass
+
+#----------------------------------------------------------------------
 class VisSampler(VisObj):
     """ VisSamplerクラス
         Base class of Sampler VisObj
@@ -32,12 +41,26 @@ class VisSampler(VisObj):
         self._ptSet = primSet.PrimSet(name='Sampler_PtSet', localMaterial=False)
         self.addChild(self._ptSet)
 
+        self._receiverGrp = gfxGroup.GfxGroup(name='Sampler_Receiver')
+
         if self.update(**args):
             self.show = True
         return
 
+    def destroy(self):
+        del self._receiverGrp
+        VisObj.destroy(self)
+
     def getVisObjType(self):
         return "Sampler"
+
+    def addReceiver(self, receiver):
+        if not isinstance(receiver, SampleReceiver):
+            return False
+        return self._receiverGrp.addChild(receiver)
+
+    def remReceiver(self, receiver):
+        return self._receiverGrp.remChild(receiver)
 
     def setGridDims(self, nx=-1, ny=-1, nz=-1, forceUpd=True):
         if forceUpd:
@@ -105,6 +128,10 @@ class VisSampler(VisObj):
             continue # k
         self._ptSet.generateBbox()
         self._ptSet.notice()
+
+        # call receive of all receiver
+        for refer in self._receiverGrp._children:
+            refer.receive(self)
 
         # update show mode
         showType = gfxNode.RT_NONE
