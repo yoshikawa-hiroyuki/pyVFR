@@ -1,6 +1,8 @@
 //
 // vsnStreamLines
 //
+#include "gfx_impl.h"
+
 #include "vsnStreamLines.h"
 
 using namespace std;
@@ -126,4 +128,108 @@ int vsnStreamLines::StreamLine(DVec4 x_i, const int l) {
     }
   }
   return it;
+}
+
+
+//------------------------------------------------------------------------
+// interfaces for ctypes
+//------------------------------------------------------------------------
+
+VFR_API void* CreateStreamLineObj(int divTime, int numSkip, int maxPts)
+{
+  vsnStreamLines* p = new vsnStreamLines(divTime, numSkip, maxPts);
+  return (void*)p;
+}
+
+VFR_API VFR_BOOL DeleteStreamLineObj(void* p)
+{
+  vsnStreamLines* psl = static_cast<vsnStreamLines*>(p);
+  if ( ! psl )
+    return VFR_FALSE;
+  delete psl;
+  return VFR_TRUE;
+}
+
+VFR_API VFR_BOOL CalcStreamLines(void* p, void *q,
+				 const size_t ns, const vector3* samplePts,
+				 const size_t dims[3],
+				 vector3* coord, float* data)
+{
+  vsnStreamLines* psl = static_cast<vsnStreamLines*>(p);
+  ObjData* po = static_cast<ObjData*>(q);
+  if ( ! psl || ! po ) return VFR_FALSE;
+  int i, l;
+
+  // alloc _x0
+  psl->_x0 = (DVec3*)ReAllocate(psl->_x0, sizeof(DVec3)*ns);
+  if ( ! psl->_x0 )
+    return VFR_FALSE;
+  for ( i = 0; i < ns; i++ ) {
+    psl->_x0[i][0] = (double)samplePts[i][0];
+    psl->_x0[i][1] = (double)samplePts[i][1];
+    psl->_x0[i][2] = (double)samplePts[i][2];
+  }
+
+  // alloc _array
+  if ( psl->_array ) delete [] psl->_array;
+  psl->_array = new vsnStreamLines::PTarray[ns];
+  if ( ! psl->_array )
+    return VFR_FALSE;
+  for ( i = 0; i < ns; i++ ) {
+    psl->_array[i].x = (vector3*)Allocate(sizeof(vector3) * psl->m_maxPts);
+    memset(psl->_array[i].x, 0, sizeof(vector3) * psl->m_maxPts);
+  }
+
+  // set data/coord to _gus
+  if ( ! psl->_gus.setup(CES::Vec3<size_t>(dims), 3, (float*)coord, data) )
+    return VFR_FALSE;
+  size_t dimSz = psl->_gus.m_dims[0]* psl->_gus.m_dims[1]* psl->_gus.m_dims[2];
+
+  // calculate bbox
+  CES::Vec3<float> pbb[2];
+  vsnInterpolate::CalcBBox(CES::Vec3<size_t>(dims), (float*)coord, pbb);
+
+  // calculate streamlines
+  DVec4 x_i;
+  size_t num_pts = 0;
+  for ( l = 0; l < ns; l++ ) {
+    // pre-check using bbox
+    if ( ! psl->_gus.is2D() &&
+	 (psl->_x0[l][0] < pbb[0].m_v[0] || psl->_x0[l][0] > pbb[1].m_v[0] ||
+          psl->_x0[l][1] < pbb[0].m_v[1] || psl->_x0[l][1] > pbb[1].m_v[1] ||
+          psl->_x0[l][2] < pbb[0].m_v[2] || psl->_x0[l][2] > pbb[1].m_v[2]) )
+      continue;
+
+    if ( psl->_gus.ConvXtoI(psl->_x0[l], x_i) < 0 )
+      continue;
+
+    psl->_gus.InterpolateCoord(x_i, psl->_array[l].x[0]);
+    psl->_array[l].cnt++;
+
+    x_i[3] = 0.0;
+    psl->StreamLine(x_i, l);
+    num_pts += psl->_array[l].cnt;
+  } // end of for(l)
+
+  // alloc lines data in po
+  if ( ! po->alcVerts(num_pts) || ! po->alcIndices(ns) )
+    return VFR_FALSE;
+  vector3* vl = po->_verts;
+  int* il = po->_indices;
+
+  int idx = 0;
+  for ( l = 0; l < ns; l++ ) {
+    // set vertex
+    for ( i = 0; i < psl->_array[l].cnt; i++ ) {
+      vl[idx][0] = psl->_array[l].x[i][0];
+      vl[idx][1] = psl->_array[l].x[i][1];
+      vl[idx][2] = psl->_array[l].x[i][2];
+      idx++;
+    } // end of for(i)
+
+    // indices
+    il[l] = psl->_array[l].cnt;
+  } // end of for(l)
+
+  return VFR_TRUE;
 }

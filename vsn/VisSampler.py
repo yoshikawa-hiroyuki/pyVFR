@@ -47,12 +47,17 @@ class VisSampler(VisObj):
             self.show = True
         return
 
-    def destroy(self):
-        del self._receiverGrp
-        VisObj.destroy(self)
-
     def getVisObjType(self):
         return "Sampler"
+
+    def updateXForm(self):
+        """ override VisObj.updateXForm
+        """
+        VisObj.updateXForm(self)
+        for receiver in self._receiverGrp._children:
+            receiver.receive(self)
+            continue
+        return
 
     def addReceiver(self, receiver):
         if not isinstance(receiver, SampleReceiver):
@@ -143,19 +148,19 @@ class VisSampler(VisObj):
         self._needUpdate = False
         return True
 
-    def getSamplePointCoord(self, in3d=False):
+    def getSamplePointCoord(self, in3d=True):
         if not self.update():
             return None
         nV = self._ptSet.getNumVerts()
         if nV < 1:
             return None
 
-        vts = np.np.ndarray((nV,3))
+        vts = np.ndarray((nV,3))
         M = self.getXFormMatrix()
         for i in range(nV):
-            v = self._ptSet._verts[i]
+            v = utilMath.Vec3(self._ptSet._verts[i])
             vv = M * v
-            vts[i][:] = vv[:]
+            vts[i, :] = vv[:]
             continue # i
 
         if not in3d:

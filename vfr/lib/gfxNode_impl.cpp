@@ -155,6 +155,8 @@ VFR_API int gfxNode_DrawLineStrip(int nv, float* vtx,
       }
 
       glVertex3fv(&vtx[i*3]);
+
+      i++;
     } // end of while(i<nv)
     glEnd(); 
   }

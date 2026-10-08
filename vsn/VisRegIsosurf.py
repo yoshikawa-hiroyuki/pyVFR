@@ -16,22 +16,13 @@ from VisRegularMesh import *
 vsn_impl = np.ctypeslib.load_library('vsn_impl',
                                      os.path.join(os.path.dirname(__file__),
                                                   "lib"))
-vsn_impl.GenerateIsosurfS.restype = C.c_int
-vsn_impl.GenerateIsosurfS.argtypes = [
+vsn_impl.GenerateIsosurf.restype = C.c_int
+vsn_impl.GenerateIsosurf.argtypes = [
     C.c_void_p,             # p
     C.c_size_t*3,           # dims[3]
     C.POINTER(C.c_float*3), # coord
     C.POINTER(C.c_float),   # data
     C.c_float               # thresh
-]
-
-vsn_impl.GenerateIsosurfD.restype = C.c_int
-vsn_impl.GenerateIsosurfD.argtypes = [
-    C.c_void_p,             # p
-    C.c_size_t*3,           # dims[3]
-    C.POINTER(C.c_float*3), # coord
-    C.POINTER(C.c_double),  # data
-    C.c_double              # thresh
 ]
 
 vector3 = C.c_float * 3
@@ -161,22 +152,15 @@ class VisRegIsosurf(VisRegularMesh):
         coord_ptr = self.p_coord.ctypes.data_as(C.POINTER(vector3))
         if self.p_data.dtype == np.float32:
             data_ptr = self.p_data.ctypes.data_as(C.POINTER(C.c_float))
-            ret = vsn_impl.GenerateIsosurfS(self._surf.p_impl,
-                                            dims, coord_ptr, data_ptr,
-                                            C.c_float(self._isoValue))
+            ret = vsn_impl.GenerateIsosurf(self._surf.p_impl,
+                                           dims, coord_ptr, data_ptr,
+                                           C.c_float(self._isoValue))
             if ret:
                 self._surf.updateObjImpl()
                 self._surf.generateBbox()
                 self._surf.generateNormals()
-        elif self.p_data.dtype == np.float64:
-            data_ptr = self.p_data.ctypes.data_as(C.POINTER(C.c_double))
-            ret = vsn_impl.GenerateIsosurfD(self._surf.p_impl,
-                                            dims, coord_ptr, data_ptr,
-                                            C.c_double(self._isoValue))
-            if ret:
-                self._surf.updateObjImpl()
-                self._surf.generateBbox()
-                self._surf.generateNormals()
+        else:
+            return False
         
         # update show mode
         if self._useLut and self._isoValue != None:

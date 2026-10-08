@@ -1061,24 +1061,10 @@ vsnIsosurf::CELL_ENTRY vsnIsosurf::cell_table[256] = {
 // interfaces for ctypes
 //------------------------------------------------------------------------
 
-VFR_API VFR_BOOL GenerateIsosurfS(void* p,
-				  const size_t dims[3],
-				  const vector3* coord, const float* data,
-				  const float thresh)
-{
-  ObjData* po = (ObjData*)p;
-  if ( ! po ) return VFR_FALSE;
-
-  if ( ! vsnIsosurf::IsoSurf(dims, coord, data, thresh, *po) )
-    return VFR_FALSE;
-
-  return VFR_TRUE;
-}
-
-VFR_API VFR_BOOL GenerateIsosurfD(void* p,
-				  const size_t dims[3],
-				  const vector3* coord, const double* data,
-				  const double thresh)
+VFR_API VFR_BOOL GenerateIsosurf(void* p,
+				 const size_t dims[3],
+				 const vector3* coord, const float* data,
+				 const float thresh)
 {
   ObjData* po = (ObjData*)p;
   if ( ! po ) return VFR_FALSE;

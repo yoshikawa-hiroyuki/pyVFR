@@ -180,8 +180,8 @@ bool vsnInterpolate::setup(const CES::Vec3<size_t>& dims,
 	    }
 	  } // end of for(i)
   }
-
   m_cacheStp2D = stp2D;
+
   return true;
 }
 
@@ -305,34 +305,39 @@ int vsnInterpolate::ConvXtoI(const VSN::DVec3 x, VSN::DVec4 x_i) {
   return -1;
 }
 
-// static interface
-deque<vsnInterpolate*> vsnInterpolate::s_pobj_list;
 
-vsnInterpolate* vsnInterpolate::GetInterpolator(const vsnInterpolate* p) {
-  if ( ! p ) { // allocate a new interpolator
-    vsnInterpolate* np = new vsnInterpolate();
-    if ( ! np )
-      return NULL;
-    s_pobj_list.push_back(np);
-    return np;
-  } else { // search p
-    auto it = find(s_pobj_list.begin(), s_pobj_list.end(), p);
-    if ( it != s_pobj_list.end() )
-      return (*it);
-    else
-      return NULL;
-  }
-}
+/* static methods */
 
-bool vsnInterpolate::DestroyInterpolater(vsnInterpolate* p) {
-  if ( ! p ) return true;
-  auto it = find(s_pobj_list.begin(), s_pobj_list.end(), p);
-  if ( it == s_pobj_list.end() ) // not found
+bool vsnInterpolate::CalcBBox(const CES::Vec3<size_t> dims, const float* pgd,
+			      CES::Vec3<float> bbox[2])
+{
+#define IDX3(d,i,j,k,l) \
+(( (k)*(d)[1]*(d)[0] + (j)*(d)[0] + (i) )*3 + (l))
+
+  int i, j, k;
+
+  if ( dims[0]*dims[1]*dims[2] < 1 || ! pgd )
     return false;
-  // found, remove and destroy
-  s_pobj_list.erase(it);
-  delete p;
+  
+  // calculate bbox
+  bbox[0][0] = bbox[1][0] = pgd[0];
+  bbox[0][1] = bbox[1][1] = pgd[1];
+  bbox[0][2] = bbox[1][2] = pgd[2];
+  for ( k = 0; k < dims[2]; k++ )
+    for ( j = 0; j < dims[1]; j++ )
+      for ( i = 0; i < dims[0]; i++ ) {
+	CES::Vec3<float> g = CES::Vec3<float>(pgd[IDX3(dims,i,j,k,0)],
+					      pgd[IDX3(dims,i,j,k,1)],
+					      pgd[IDX3(dims,i,j,k,2)]);
+	if ( bbox[0][0] > g[0] ) bbox[0][0] = g[0];
+	else if ( bbox[1][0] < g[0] ) bbox[1][0] = g[0];
+	if ( bbox[0][1] > g[1] ) bbox[0][1] = g[1];
+	else if ( bbox[1][1] < g[1] ) bbox[1][1] = g[1];
+	if ( bbox[0][2] > g[2] ) bbox[0][2] = g[2];
+	else if ( bbox[1][2] < g[2] ) bbox[1][2] = g[2];
+      }
   return true;
+#undef IDX3
 }
 
 
@@ -342,7 +347,7 @@ bool vsnInterpolate::DestroyInterpolater(vsnInterpolate* p) {
 
 VFR_API void* CreateInterpolator()
 {
-  vsnInterpolate* p = vsnInterpolate::GetInterpolator(NULL);
+  vsnInterpolate* p = new vsnInterpolate();
   return (void*)p;
 }
 
@@ -465,7 +470,6 @@ VFR_API VFR_BOOL DeleteInterpolator(void* p)
   vsnInterpolate* pIntp = static_cast<vsnInterpolate*>(p);
   if ( ! pIntp )
     return VFR_FALSE;
-  if ( ! vsnInterpolate::DestroyInterpolater(pIntp) )
-    return VFR_FALSE;
+  delete pIntp;
   return VFR_TRUE;
 }

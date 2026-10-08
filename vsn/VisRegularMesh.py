@@ -35,9 +35,9 @@ class VisRegularMesh(VisObj):
             return True
         if isinstance(data, np.ndarray) and len(data.shape) in (3, 4):
             if len(data.shape) == 4:
-                self.p_data = data[:, :, :, 0]
+                self.p_data = data[:, :, :, 0].astype(np.float32, copy=False)
             else:
-                self.p_data = data
+                self.p_data = data.astype(np.float32, copy=False)
             if minmaxUpd:
                 self.setMinMax([self.p_data.min(), self.p_data.max()])
         else:
@@ -52,9 +52,10 @@ class VisRegularMesh(VisObj):
             return True
         if isinstance(data, np.ndarray) and len(data.shape) == 4:
             if data.shape[3] > 3:
-                self.p_data = data[:, :, :, :, 0:3]
+                self.p_data \
+                    = data[:, :, :, :, 0:3].astype(np.float32, copy=False)
             elif data.shape[3] == 3:
-                self.p_data = data
+                self.p_data = data.astype(np.float32, copy=False)
             else:
                 return False
             if minmaxUpd:

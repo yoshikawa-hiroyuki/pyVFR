@@ -47,9 +47,9 @@ public:
   bool is2D() const {return (m_axis1 != Not2D);}
   Axis1Type getAxis1() const {return m_axis1;}
 
-  // static interface
-  static vsnInterpolate* GetInterpolator(const vsnInterpolate* p);
-  static bool DestroyInterpolater(vsnInterpolate* p);
+  static bool CalcBBox(const CES::Vec3<size_t> dims, const float* pgd,
+		       CES::Vec3<float> bbox[2]);
+
 
 private:
   CES::Vec3<size_t> m_dimsOrg;
@@ -57,8 +57,6 @@ private:
   float*            m_pVecd2D;
   Axis1Type         m_axis1;
   mutable int       m_cacheStp2D;
-
-  static std::deque<vsnInterpolate*> s_pobj_list;
 };
 
 

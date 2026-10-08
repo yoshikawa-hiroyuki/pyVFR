@@ -2,16 +2,18 @@
 
 TARGET = vsn_impl.dylib
 OBJS =	vsnIsosurf.o \
+	vnsLineStripSet.o \
 	vsnInterpolate.o \
 	vsnStreamLines.o \
 
+OPT=-g -O0
 VFR_LIBDIR = ../../vfr/lib
 
 CXX=g++
-CXXFLAGS=-g -fPIC -c -I$(VFR_LIBDIR)
+CXXFLAGS=$(OPT) -fPIC -c -I$(VFR_LIBDIR)
 
 LINK=$(CXX)
-LDFLAGS=-L$(VFR_LIBDIR) -dynamiclib -g -fPIC
+LDFLAGS=-L$(VFR_LIBDIR) -dynamiclib $(OPT) -fPIC
 LDLIBS=-lvfr_impl -framework OpenGL
 
 NAME_TOOL=install_name_tool
