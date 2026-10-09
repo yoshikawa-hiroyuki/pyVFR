@@ -39,6 +39,9 @@ class ObjSelectDlg(wx.Dialog):
         # update list
         self.updateList()
 
+        # callbacks
+        self.listCtl.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnListActivated)
+
         # buttons
         okBtn = wx.Button(panel, wx.ID_OK)
         cancelBtn = wx.Button(panel, wx.ID_CANCEL)
@@ -94,6 +97,12 @@ class ObjSelectDlg(wx.Dialog):
             return None
         obj = arena.getObject(idx)
         return obj
+
+
+    def OnListActivated(self, event):
+        idx = event.GetIndex()
+        if idx >= 0:
+            self.EndModal(wx.ID_OK)
 
 
 if __name__ == '__main__':

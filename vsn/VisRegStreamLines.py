@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-VisRegOrthoVector
+VisRegStreamLines
 """
 import sys, os
 import numpy as np
@@ -38,6 +38,7 @@ vsn_impl.CalcStreamLines.argtypes = [
     C.c_size_t*3,           # dims[3]
     C.POINTER(C.c_float*3), # coord
     C.POINTER(C.c_float),   # data
+    C.c_int,                # reqColor
 ]
 
 #----------------------------------------------------------------------
@@ -45,6 +46,9 @@ class VisRegStreamLines(VisRegularMesh, SampleReceiver):
     """ VisRegStreamLinesクラス
         show streamlines of regular mesh vector data
     """
+
+    # color mode
+    (Col_None, Col_SmplPt, Col_Velo) = range(3)
 
     def __init__(self, **args):
         """
@@ -86,9 +90,11 @@ class VisRegStreamLines(VisRegularMesh, SampleReceiver):
         return VisRegularMesh.setVectorData(self, data, forceUpd, minmaxUpd)
 
     def setSamplePts(self, samplePts, forceUpd=True):
-        self._sampleDims = [0, 0, 0]
         if forceUpd:
             self._needUpdate = True
+        if samplePts is None:
+            return True
+        self._sampleDims = [0, 0, 0]
         if isinstance(samplePts, np.ndarray) and \
            len(samplePts.shape) in (2, 3, 4) and samplePts.shape[-1] == 3:
             sampleDims = [1, 1, 1]
@@ -131,6 +137,27 @@ class VisRegStreamLines(VisRegularMesh, SampleReceiver):
         vts = sampler.getSamplePointCoord()
         self.update(samplePts=vts)
         return
+
+    def setColorMode(self, colorMode =Col_None,
+                     forceUpd=True):
+        if forceUpd:
+            self._needUpdate = True
+        if colorMode == VisRegStreamLines.Col_Velo:
+            if self._useLut == False:
+                self._needUpdate = True
+            self._useLut = True
+            self._coloredLine = False
+        elif colorMode == VisRegStreamLines.Col_SmplPt:
+            if self._useLut == True or self._coloredLine == False:
+                self._needUpdate = True
+            self._useLut = False
+            self._coloredLine = True
+        else:
+            if self._useLut == True or self._coloredLine == True:
+                self._needUpdate = True
+            self._useLut = False
+            self._coloredLine = False
+        return True
 
     def setIntegralParam(self, divTime =-1, skipStep =-1, maxPoints =-1,
                          forceUpd=True):
@@ -204,7 +231,7 @@ class VisRegStreamLines(VisRegularMesh, SampleReceiver):
         # check samplePts(_verts)
         nv = self._sampleDims[0]*self._sampleDims[1]*self._sampleDims[2]
         if nv < 1:
-            return False
+            return True
 
         # calculate streamlines
         if self.p_slimpl is None:
@@ -214,9 +241,10 @@ class VisRegStreamLines(VisRegularMesh, SampleReceiver):
                               self.p_data.shape[0])
         coord_ptr = self.p_coord.ctypes.data_as(C.POINTER(C.c_float*3))
         data_ptr = self.p_data.ctypes.data_as(C.POINTER(C.c_float))
+        reqCol = 1 if self._useLut else 0
         ret = vsn_impl.CalcStreamLines(self.p_slimpl, self._lines.p_impl,
                                        nv, sample_ptr,
-                                       dims, coord_ptr, data_ptr)
+                                       dims, coord_ptr, data_ptr, reqCol)
         if not ret:
             return False
         self._lines.updateObjImpl()
@@ -235,6 +263,20 @@ class VisRegStreamLines(VisRegularMesh, SampleReceiver):
 
         sizerTop = wx.BoxSizer(orient=wx.VERTICAL)
 
+        # color mode
+        self._colorModeButtons = []
+        sizerH = wx.BoxSizer()
+        sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
+        sizerH.Add(wx.StaticText(self.paramsPnl, label='color:'))
+        choices = ["None", "Sample Pt", "Velocity"]
+        for i, choice in enumerate(choices):
+            style = wx.RB_GROUP if i == 0 else 0
+            rb = wx.RadioButton(self.paramsPnl, label=choice, style=style)
+            rb.Bind(wx.EVT_RADIOBUTTON, self.OnColorModeRadio)
+            sizerH.Add(rb, flag=wx.ALL, border=3)
+            self._colorModeButtons.append(rb)
+            continue # for i,choice
+        
         # line width
         sizerH = wx.BoxSizer()
         sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
@@ -245,7 +287,35 @@ class VisRegStreamLines(VisRegularMesh, SampleReceiver):
                    border=3)
         self._lineWidthTxt.Bind(wx.EVT_TEXT_ENTER, self.OnLineWidthTxt)
 
-                # sizing
+        # integral params
+        sizerH = wx.BoxSizer()
+        sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
+        sizerH.Add(wx.StaticText(self.paramsPnl, label='max points'), border=3)
+        self._maxPointsTxt = wx.TextCtrl(self.paramsPnl, value='', \
+                                         style=wx.TE_PROCESS_ENTER)
+        sizerH.Add(self._maxPointsTxt, flag=wx.EXPAND|wx.ALL, proportion=1, \
+                   border=3)
+        self._maxPointsTxt.Bind(wx.EVT_TEXT_ENTER, self.OnIntegralParamsTxt)
+
+        sizerH = wx.BoxSizer()
+        sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
+        sizerH.Add(wx.StaticText(self.paramsPnl, label='div time'), border=3)
+        self._divTimeTxt = wx.TextCtrl(self.paramsPnl, value='', \
+                                       style=wx.TE_PROCESS_ENTER)
+        sizerH.Add(self._divTimeTxt, flag=wx.EXPAND|wx.ALL, proportion=1, \
+                   border=3)
+        self._divTimeTxt.Bind(wx.EVT_TEXT_ENTER, self.OnIntegralParamsTxt)
+
+        sizerH = wx.BoxSizer()
+        sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
+        sizerH.Add(wx.StaticText(self.paramsPnl, label='skip steps'), border=3)
+        self._skipStepTxt = wx.TextCtrl(self.paramsPnl, value='', \
+                                        style=wx.TE_PROCESS_ENTER)
+        sizerH.Add(self._skipStepTxt, flag=wx.EXPAND|wx.ALL, proportion=1, \
+                   border=3)
+        self._skipStepTxt.Bind(wx.EVT_TEXT_ENTER, self.OnIntegralParamsTxt)
+        
+        # sizing
         self.paramsPnl.SetSizer(sizerTop)
         sizerTop.Fit(self.paramsPnl)
         self.paramsPnl.Fit()
@@ -256,13 +326,39 @@ class VisRegStreamLines(VisRegularMesh, SampleReceiver):
         if self.paramsPnl is None:
             return False
 
+        # color mode
+        if self._useLut:
+            self._colorModeButtons[VisRegStreamLines.Col_Velo].SetValue(True)
+        elif self._coloredLine:
+            self._colorModeButtons[VisRegStreamLines.Col_SmplPt].SetValue(True)
+        else:
+            self._colorModeButtons[VisRegStreamLines.Col_None].SetValue(True)
+        
         # line width
         self._lineWidthTxt.SetValue(str(self.getLineWidth()))
+
+        # integral params
+        self._maxPointsTxt.SetValue(str(self._maxPoints))
+        self._divTimeTxt.SetValue(str(self._divTime))
+        self._skipStepTxt.SetValue(str(self._skipStep))
 
         return True
 
     # Event Handlers
 
+    def OnColorModeRadio(self, event):
+        new_colorMode = None
+        if self._colorModeButtons[VisRegStreamLines.Col_Velo].GetValue():
+            new_colorMode = VisRegStreamLines.Col_Velo
+        elif self._colorModeButtons[VisRegStreamLines.Col_SmplPt].GetValue():
+            new_colorMode = VisRegStreamLines.Col_SmplPt
+        else:
+            new_colorMode = VisRegStreamLines.Col_None
+        if self.setColorMode(new_colorMode):
+            if self.update():
+                self.chkNotice()
+        return
+        
     def OnLineWidthTxt(self, event):
         try:
             val = float(self._lineWidthTxt.GetValue())
@@ -279,6 +375,34 @@ class VisRegStreamLines(VisRegularMesh, SampleReceiver):
             self.chkNotice()
         return
 
+    def OnIntegralParamsTxt(self, event):
+        maxPoints = -1
+        divTime = -1
+        skipStep = -1
+        try:
+            maxPoints = int(self._maxPointsTxt.GetValue())
+        except:
+            maxPoints = self._maxPoints
+        if maxPoints < 1:
+            maxPoints = -1
+        try:
+            divTime = int(self._divTimeTxt.GetValue())
+        except:
+            divTime = self._divTime
+        if divTime < 1:
+            divTime = -1
+        try:
+            skipStep = int(self._skipStepTxt.GetValue())
+        except:
+            skipStep = self._skipStep
+        if skipStep < 1:
+            skipStep = -1
+        if self.setIntegralParam(divTime, skipStep, maxPoints):
+            if self.update():
+                self.chkNotice()
+        self.updatePP()
+        return
+        
 
 if __name__ == '__main__':
     from pySPH import SPH

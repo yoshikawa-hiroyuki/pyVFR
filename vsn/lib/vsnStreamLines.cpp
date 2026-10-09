@@ -135,6 +135,8 @@ int vsnStreamLines::StreamLine(DVec4 x_i, const int l) {
 // interfaces for ctypes
 //------------------------------------------------------------------------
 
+#define SQR(x) ((x)*(x))
+
 VFR_API void* CreateStreamLineObj(int divTime, int numSkip, int maxPts)
 {
   vsnStreamLines* p = new vsnStreamLines(divTime, numSkip, maxPts);
@@ -153,7 +155,8 @@ VFR_API VFR_BOOL DeleteStreamLineObj(void* p)
 VFR_API VFR_BOOL CalcStreamLines(void* p, void *q,
 				 const size_t ns, const vector3* samplePts,
 				 const size_t dims[3],
-				 vector3* coord, float* data)
+				 vector3* coord, float* data,
+				 const int reqCol)
 {
   vsnStreamLines* psl = static_cast<vsnStreamLines*>(p);
   ObjData* po = static_cast<ObjData*>(q);
@@ -216,8 +219,14 @@ VFR_API VFR_BOOL CalcStreamLines(void* p, void *q,
     return VFR_FALSE;
   vector3* vl = po->_verts;
   int* il = po->_indices;
-
-  int idx = 0;
+  vector4* cl = NULL;
+  if ( reqCol ) {
+    if ( ! po->alcColors(num_pts) )
+      return VFR_FALSE;
+    cl = po->_colors;
+  }
+  
+  int idx = 0, cidx = 0;
   for ( l = 0; l < ns; l++ ) {
     // set vertex
     for ( i = 0; i < psl->_array[l].cnt; i++ ) {
@@ -229,6 +238,25 @@ VFR_API VFR_BOOL CalcStreamLines(void* p, void *q,
 
     // indices
     il[l] = psl->_array[l].cnt;
+
+    // colors
+    if ( cl ) {
+      double xl;
+      for ( i = 0; i < psl->_array[l].cnt -1; i++ ) {
+	xl= SQR(psl->_array[l].x[i+1][0] - psl->_array[l].x[i][0])
+	  + SQR(psl->_array[l].x[i+1][1] - psl->_array[l].x[i][1])
+	  + SQR(psl->_array[l].x[i+1][2] - psl->_array[l].x[i][2]);
+	cl[cidx][3] = sqrt(xl);
+	cidx++;
+      } // end of for(i)
+      if ( i > 0 ) {
+	xl= SQR(psl->_array[l].x[i][0] - psl->_array[l].x[i-1][0])
+	  + SQR(psl->_array[l].x[i][1] - psl->_array[l].x[i-1][1])
+	  + SQR(psl->_array[l].x[i][2] - psl->_array[l].x[i-1][2]);
+	cl[cidx][3] = sqrt(xl);
+	cidx++;
+      }
+    }
   } // end of for(l)
 
   return VFR_TRUE;

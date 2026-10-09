@@ -2,7 +2,7 @@
 
 TARGET = vsn_impl.dylib
 OBJS =	vsnIsosurf.o \
-	vnsLineStripSet.o \
+	vsnLineStripSet.o \
 	vsnInterpolate.o \
 	vsnStreamLines.o \
 

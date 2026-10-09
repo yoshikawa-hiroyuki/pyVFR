@@ -22,15 +22,15 @@ vsn_impl.VsnDrawPointSet.restype = C.c_int
 vsn_impl.VsnDrawPointSet.argtypes = [
     C.c_int, C.POINTER(C.c_float*3),
     C.c_int, C.POINTER(C.c_float*4),
-    C.c_int, C.c_int]
+    C.c_int]
 
 vsn_impl.VsnDrawLineStripSet.restype = C.c_int
 vsn_impl.VsnDrawLineStripSet.argtypes = [
     C.c_int, C.POINTER(C.c_float*3),
     C.c_int, C.POINTER(C.c_float*4),
-    C.c_int, C.c_int, C.c_int]
-#----------------------------------------------------------------------
+    C.c_int, C.c_int]
 
+#----------------------------------------------------------------------
 class vsnLineStripSet(GfxNode):
     """
     連結線分集合クラス
@@ -77,7 +77,7 @@ class vsnLineStripSet(GfxNode):
             # call VsnDrawPointSet
             if self.nVerts > 0:
                 ret = vsn_impl.VsnDrawPointSet(self.nVerts, self._verts,
-                                               0, None,  0, 1)
+                                               0, None,  1)
                 if ret == 0: pass
         elif self._feedbackMode == FB_EDGE:
             # call DrawLineStripSet (not feedback mode)
@@ -113,24 +113,33 @@ class vsnLineStripSet(GfxNode):
         if self.beginDispList(DLF_WIRE):
             return
 
-        # draw linestrips via VsnDrawLineStripSet
-        if self._colorMode == AT_PER_VERTEX and not self._useAuxLineColor:
-            nc = self.nColors
-            col = self._colors
-        else:
+        # default color args
+        if self._useAuxLineColor or \
+           self._colorMode == AT_WHOLE or self._colorMode == AT_PER_FACE:
             nc = 0
             col = None
+
+        # draw linestrips via VsnDrawLineStripSet
         vidx = 0
         for i in range(self.nIndices):
-            if self._indices[i] < 2:
+            if self._indices[i] < 2 or vidx + self._indices[i] > self.nVerts:
                 continue
-            if self._colorMode == AT_PER_FACE:
-                if i < self.nColors:
-                    glColor4fv(self._colors[i])
+
+            if not self._useAuxLineColor:
+                if self._colorMode == AT_PER_FACE:
+                    if i < self.nColors:
+                        glColor4fv(self._colors[i])
+                elif self._colorMode == AT_PER_VERTEX:
+                    if vidx + self._indices[i] <= self.nColors:
+                        nc = self._indices[i]
+                        col = C.byref(self._colors[vidx])
+                    else:
+                        nc = 0
+                        col = None
+            
             ret = vsn_impl.VsnDrawLineStripSet(self._indices[i],
                                                C.byref(self._verts[vidx]),
-                                               self.nColors, self._colors,
-                                               self._colorMode,
+                                               nc, col,
                                                self.loopMode, 0)
             if ret == 0: pass
             vidx += self._indices[i]

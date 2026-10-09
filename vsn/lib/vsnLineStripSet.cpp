@@ -12,8 +12,7 @@ using namespace VSN;
 //------------------------------------------------------------------------
 
 VFR_API int VsnDrawPointSet(int nv, float* vtx,
-			    int nc, float* color,
-			    int sym, int fbk)
+			    int nc, float* color, int fbk)
 {
   if ( nv < 1 || ! vtx ) return 0;
   if ( nc > 0 && ! color ) return 0;
@@ -44,7 +43,7 @@ VFR_API int VsnDrawPointSet(int nv, float* vtx,
 
 VFR_API int VsnDrawLineStripSet(int nv, float* vtx,
 				int nc, float* color,
-				int ctype, int loop, int fbk)
+				int loop, int fbk)
 {
   if ( nv < 2 || ! vtx ) return 0;
   if ( nc > 0 && ! color ) return 0;
@@ -74,10 +73,8 @@ VFR_API int VsnDrawLineStripSet(int nv, float* vtx,
     else
       glBegin(GL_LINE_STRIP);
     while ( i < nv ) {
-      if ( ctype == AT_PER_FACE || ctype == AT_PER_VERTEX ) {
-	if ( i < nc )
-	  glColor4fv(&color[i*4]);
-      }
+      if ( i < nc )
+	glColor4fv(&color[i*4]);
 
       glVertex3fv(&vtx[i*3]);
 

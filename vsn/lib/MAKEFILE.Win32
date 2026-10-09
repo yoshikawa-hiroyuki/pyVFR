@@ -5,6 +5,7 @@
 TARGET=vsn_impl
 OBJS=	vsnIsosurf.obj \
 	vsnInterpolate.obj \
+	vsnLineStripSet.obj \
 	vsnStreamLines.obj \
 
 VFR_LIBDIR = ../../vfr/lib
