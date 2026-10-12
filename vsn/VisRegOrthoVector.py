@@ -133,7 +133,7 @@ class VisRegOrthoVector(VisRegularMesh):
 
         if self.p_coord is None or p_data is None:
             return False
-        max_veclen = np.linalg.norm(self.p_coord, axis=-1).max()
+        #max_veclen = np.linalg.norm(self.p_coord, axis=-1).max()
 
         dims = self.p_coord.shape
         if self._slicePlane == VisRegularMesh.S_Za:

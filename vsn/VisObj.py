@@ -97,6 +97,7 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
             minVal = float(minmax[0])
             maxVal = float(minmax[1])
         except:
+            self.updatePP()
             return False
         if self.lut.minVal == minVal and self.lut.maxVal == maxVal:
             return True
@@ -106,7 +107,7 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
             maxVal = bkup
         self.lut.minVal = minVal
         self.lut.maxVal = maxVal
-        self.updateUI()
+        self.updatePP()
         self._needUpdate = True
         return True
 
@@ -244,6 +245,15 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
             self.initPP()
         self.updatePP()
         return self.paramsPnl
+
+    def delParamsPanel(self):
+        """ パラメータパネルの破壊.
+        """
+        if self.paramsPnl is None:
+            return
+        self.paramsPnl.Destroy()
+        self.paramsPnl = None
+        return
 
     def initPP(self):
         """ パラメータパネルの初期化(派生クラスで実装).

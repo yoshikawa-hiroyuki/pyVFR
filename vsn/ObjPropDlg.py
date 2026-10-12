@@ -114,7 +114,9 @@ class ObjPropDlg(wx.Dialog):
         return
 
     def __del__(self):
-        if self._visObj: del self._visObj
+        if self._visObj:
+            self._visObj.delParamsPanel()
+            self._visObj = None
         return
 
     def update(self):
@@ -205,15 +207,13 @@ class ObjPropDlg(wx.Dialog):
         except:
             self.update()
             return
-        self._visObj.lut.minVal = minVal
-        self._visObj.lut.maxVal = maxVal
-        self._visObj.update()
+        self._visObj.update(minMax=(minVal, maxVal))
         self._visObj.chkNotice()
         return
 
     def OnDestroy(self, event):
         if self._visObj:
-            self._visObj.destroy()
+            self._visObj.delParamsPanel()
             self._visObj = None
         return
 

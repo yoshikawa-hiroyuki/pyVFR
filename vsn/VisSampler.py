@@ -149,8 +149,6 @@ class VisSampler(VisObj):
         return True
 
     def getSamplePointCoord(self, in3d=True):
-        if not self.update():
-            return None
         nV = self._ptSet.getNumVerts()
         if nV < 1:
             return None

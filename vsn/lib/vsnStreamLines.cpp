@@ -220,8 +220,12 @@ VFR_API VFR_BOOL CalcStreamLines(void* p, void *q,
   vector3* vl = po->_verts;
   int* il = po->_indices;
   vector4* cl = NULL;
-  if ( reqCol ) {
+  if ( reqCol == 2 ) { // Col_Velo
     if ( ! po->alcColors(num_pts) )
+      return VFR_FALSE;
+    cl = po->_colors;
+  } else if ( reqCol == 1 ) { // Col_SmplPt
+    if ( ! po->alcColors(ns) )
       return VFR_FALSE;
     cl = po->_colors;
   }
@@ -240,7 +244,7 @@ VFR_API VFR_BOOL CalcStreamLines(void* p, void *q,
     il[l] = psl->_array[l].cnt;
 
     // colors
-    if ( cl ) {
+    if ( reqCol == 2 && cl ) {
       double xl;
       for ( i = 0; i < psl->_array[l].cnt -1; i++ ) {
 	xl= SQR(psl->_array[l].x[i+1][0] - psl->_array[l].x[i][0])

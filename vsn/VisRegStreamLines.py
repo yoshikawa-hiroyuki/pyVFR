@@ -13,6 +13,8 @@ from VisRegularMesh import *
 from VisSampler import *
 from LineStripSet import *
 
+from vfr.lut import Lut
+
 #----------------------------------------------------------------------
 vsn_impl = np.ctypeslib.load_library('vsn_impl',
                                      os.path.join(os.path.dirname(__file__),
@@ -226,7 +228,7 @@ class VisRegStreamLines(VisRegularMesh, SampleReceiver):
         p_data = None if self.p_data is None else self.p_data
         if self.p_coord is None or p_data is None:
             return False
-        max_veclen = np.linalg.norm(self.p_coord, axis=-1).max()
+        #max_veclen = np.linalg.norm(self.p_coord, axis=-1).max()
 
         # check samplePts(_verts)
         nv = self._sampleDims[0]*self._sampleDims[1]*self._sampleDims[2]
@@ -241,7 +243,12 @@ class VisRegStreamLines(VisRegularMesh, SampleReceiver):
                               self.p_data.shape[0])
         coord_ptr = self.p_coord.ctypes.data_as(C.POINTER(C.c_float*3))
         data_ptr = self.p_data.ctypes.data_as(C.POINTER(C.c_float))
-        reqCol = 1 if self._useLut else 0
+        if self._useLut:
+            reqCol = VisRegStreamLines.Col_Velo
+        elif self._coloredLine:
+            reqCol = VisRegStreamLines.Col_SmplPt
+        else:
+            reqCol = VisRegStreamLines.Col_None
         ret = vsn_impl.CalcStreamLines(self.p_slimpl, self._lines.p_impl,
                                        nv, sample_ptr,
                                        dims, coord_ptr, data_ptr, reqCol)
@@ -252,6 +259,30 @@ class VisRegStreamLines(VisRegularMesh, SampleReceiver):
         self._lines.notice()
 
         # setup lines color
+        if self._useLut:
+            cl = self._lines._colors
+            nc = self._lines.nColors
+            for i in range(nc):
+                cidx = self.lut.getValIdx(cl[i][3])
+                cl[i][0:3] = self.lut.entry[cidx, 0:3]
+                cl[i][3] = self._colors[0][3]
+                continue # enf of for(i)
+            self._lines.setColorMode(AT_PER_VERTEX)
+        elif self._coloredLine:
+            cl = self._lines._colors
+            nc = nv
+            xlut = Lut()
+            xlut.setTo(self.lut)
+            xlut.maxVal = float(nc - 1)
+            for i in range(nc):
+                cidx = xlut.getValIdx(float(i))
+                cl[i][0:3] = xlut.entry[cidx, 0:3]
+                cl[i][3] = self._colors[0][3]
+                continue # enf of for(i)
+            self._lines.setColorMode(AT_PER_FACE)
+        else:
+            self._lines._colors[0][:] = self._colors[0][:]
+            self._lines.setColorMode(AT_WHOLE)
 
         self.generateBbox()
         self._needUpdate = False
