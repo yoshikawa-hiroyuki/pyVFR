@@ -206,8 +206,8 @@ class GfxView(object):
           戻り値 - bool. 失敗したらFalseを返す.
         """
         pp = gfxNode.Point2((p0.x + p1.x) / 2, (p0.y + p1.y) / 2)
-        vpSize = self.drawArea.getSize()
-        m0 = gfxNode.Point2(vpSize.x / 2, vpSize.y / 2)
+        vp = self.drawArea._viewport
+        m0 = gfxNode.Point2(vp[2] / 2, vp[3] / 2)
 
         # translate
         tid = self.scene.getID()
@@ -222,7 +222,7 @@ class GfxView(object):
 
         # zoom
         ppLen = abs(utilMath.Vec3((p1.x - p0.x, p1.y - p0.y, 0.0)))
-        vpLen = abs(utilMath.Vec3((vpSize.x, vpSize.y, 0.0)))
+        vpLen = abs(utilMath.Vec3((vp[2], vp[3], 0.0)))
         if ppLen > 1e-6: self._S.scale(vpLen / ppLen)
 
         self.sceneGraphUpdated()
@@ -278,7 +278,7 @@ class GfxView(object):
         cp0 = gfxNode.Point2()
         if not self.drawArea.getWinCoord(self.centPos.getID(), o, cp0):
             return
-        cp0.y = self.drawArea.getSize().y - cp0.y
+        cp0.y = self.drawArea._viewport[3] - cp0.y
         cd = cp - cp0
         self.drawArea.translateNode(self.centPos, cp0, cd)
 

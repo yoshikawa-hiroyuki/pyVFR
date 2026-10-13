@@ -16,6 +16,41 @@ from .events import *
 from .utilMath import *
 
 #----------------------------------------------------------------------
+from OpenGL.raw.GLU import gluProject as rawGluProject
+from OpenGL.raw.GLU import gluUnProject as rawGluUnProject
+from OpenGL.raw import GLU as _simple
+
+def fixedGluProject(objx, objy, objz, model, proj, view):
+    winx = (_simple.GLdouble * 1)()
+    winy = (_simple.GLdouble * 1)()
+    winz = (_simple.GLdouble * 1)()
+
+    r = rawGluProject(
+        objx, objy, objz,
+        model, proj, view,
+        winx, winy, winz
+    )
+    if not r:
+        raise ValueError("Window projection failed")
+
+    return winx[0], winy[0], winz[0]
+
+def fixedGluUnProject(winx, winy, winz, model, proj, view):
+    objx = (_simple.GLdouble * 1)()
+    objy = (_simple.GLdouble * 1)()
+    objz = (_simple.GLdouble * 1)()
+
+    r = rawGluUnProject(
+        winx, winy, winz,
+        model, proj, view,
+        objx, objy, objz
+    )
+    if not r:
+        raise ValueError("Projection failed")
+
+    return objx[0], objy[0], objz[0]
+
+#----------------------------------------------------------------------
 import os.path
 vfr_impl = N.ctypeslib.load_library('vfr_impl',
                                     os.path.join(os.path.dirname(__file__),
@@ -409,8 +444,10 @@ class DrawArea(object):
         winx = float(spos.x)
         winy = float(self._viewport[3] - spos.y)
         winz = 1.0 - self._camera.getFocusDepth()
-        (objx, objy, objz) = gluUnProject(winx, winy, winz,
-                                          model=modelMat, proj=projMat)
+        viewport = self._viewport
+        (objx, objy, objz) = fixedGluUnProject(winx, winy, winz,
+                                               modelMat, projMat,
+                                               viewport)
         objCoord[0] = objx
         objCoord[1] = objy
         objCoord[2] = objz
@@ -437,7 +474,10 @@ class DrawArea(object):
         modelMat = N.ndarray((4,4))
         modelMat[:][:] = mM.m_v.reshape(4,4)[:][:]
         (objx, objy, objz) = (tpos[0], tpos[1], tpos[2])
-        (winx, winy, winz) = gluProject(objx, objy, objz, modelMat, projMat)
+        viewport = self._viewport
+        (winx, winy, winz) = fixedGluProject(objx, objy, objz,
+                                             modelMat, projMat,
+                                             viewport)
         winCoord.x = winx
         winCoord.y = winy
         return True
