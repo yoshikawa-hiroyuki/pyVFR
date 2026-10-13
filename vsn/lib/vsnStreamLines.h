@@ -23,7 +23,7 @@ public:
   // point array of lines
   struct PTarray {
     int      cnt;
-    vector3* x;
+    vector4* x; // (x, y, z, |v|)
     PTarray() : cnt(0), x(NULL) {}
     ~PTarray() {if(x) DeAllocate(x);}
   };
@@ -33,7 +33,8 @@ public:
   VSN::DVec3*    _x0;
   PTarray*       _array;
 
-  double GetIntegrand(const VSN::DVec4 x_i, VSN::DVec3 func);
+  double GetIntegrand(const VSN::DVec4 x_i, VSN::DVec3 func,
+		      VSN::DVec3* resV =NULL);
   int RKG(const double t_step, VSN::DVec4 x_i); // Runge-Kutta-Gill
   int StreamLine(VSN::DVec4 x_i, const int l);
 };
