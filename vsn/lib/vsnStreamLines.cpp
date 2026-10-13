@@ -8,6 +8,9 @@
 using namespace std;
 using namespace VSN;
 
+#define SQR(x) ((x)*(x))
+
+
 //----------------------------------------------------------------
 // class vsnStreamLines
 //----------------------------------------------------------------
@@ -29,7 +32,9 @@ vsnStreamLines::~vsnStreamLines() {
 
 /* internal method for make stream lines */
 
-double vsnStreamLines::GetIntegrand(const DVec4 x_i, DVec3 func) {
+double vsnStreamLines::GetIntegrand(const DVec4 x_i, DVec3 func,
+				    VSN::DVec3* resV)
+{
   double t_step, max = 0.0;
 
   DMat3 m; DVec3 v;
@@ -52,6 +57,12 @@ double vsnStreamLines::GetIntegrand(const DVec4 x_i, DVec3 func) {
 
   if ( t_step > 1.0 )
     t_step = 1.0; // avoid a stagnation point.
+
+  if ( resV ) {
+    (*resV)[0] = v[0];
+    (*resV)[1] = v[1];
+    (*resV)[2] = v[2];
+  }
 
   return t_step;
 }
@@ -115,8 +126,8 @@ int vsnStreamLines::RKG(const double t_step, DVec4 x_i) {
 int vsnStreamLines::StreamLine(DVec4 x_i, const int l) {
   int it, end = (m_maxPts - 1) * m_numSkip;
   for ( it = 0; it < end; it++ ) {
-    DVec3 func;
-    double t_step = GetIntegrand(x_i, func);
+    DVec3 func, resV;
+    double t_step = GetIntegrand(x_i, func, &resV);
     if ( ! t_step ) return 0;
 
     if ( RKG(t_step, x_i) < 0 )
@@ -124,6 +135,8 @@ int vsnStreamLines::StreamLine(DVec4 x_i, const int l) {
 
     if ( ! ((it+1)%m_numSkip) ) {
       _gus.InterpolateCoord(x_i, _array[l].x[_array[l].cnt]);
+      _array[l].x[_array[l].cnt][3]
+	= sqrt(SQR(resV[0])+SQR(resV[1])+SQR(resV[2]));
       _array[l].cnt++;
     }
   }
@@ -134,8 +147,6 @@ int vsnStreamLines::StreamLine(DVec4 x_i, const int l) {
 //------------------------------------------------------------------------
 // interfaces for ctypes
 //------------------------------------------------------------------------
-
-#define SQR(x) ((x)*(x))
 
 VFR_API void* CreateStreamLineObj(int divTime, int numSkip, int maxPts)
 {
@@ -179,8 +190,8 @@ VFR_API VFR_BOOL CalcStreamLines(void* p, void *q,
   if ( ! psl->_array )
     return VFR_FALSE;
   for ( i = 0; i < ns; i++ ) {
-    psl->_array[i].x = (vector3*)Allocate(sizeof(vector3) * psl->m_maxPts);
-    memset(psl->_array[i].x, 0, sizeof(vector3) * psl->m_maxPts);
+    psl->_array[i].x = (vector4*)Allocate(sizeof(vector4) * psl->m_maxPts);
+    memset(psl->_array[i].x, 0, sizeof(vector4) * psl->m_maxPts);
   }
 
   // set data/coord to _gus
@@ -244,22 +255,12 @@ VFR_API VFR_BOOL CalcStreamLines(void* p, void *q,
     il[l] = psl->_array[l].cnt;
 
     // colors
+    // |v| is passed from _array[l].x[i][3] to _colors[j][4]
     if ( reqCol == 2 && cl ) {
-      double xl;
-      for ( i = 0; i < psl->_array[l].cnt -1; i++ ) {
-	xl= SQR(psl->_array[l].x[i+1][0] - psl->_array[l].x[i][0])
-	  + SQR(psl->_array[l].x[i+1][1] - psl->_array[l].x[i][1])
-	  + SQR(psl->_array[l].x[i+1][2] - psl->_array[l].x[i][2]);
-	cl[cidx][3] = sqrt(xl);
+      for ( i = 0; i < psl->_array[l].cnt; i++ ) {
+	cl[cidx][3] = psl->_array[l].x[i][3];
 	cidx++;
       } // end of for(i)
-      if ( i > 0 ) {
-	xl= SQR(psl->_array[l].x[i][0] - psl->_array[l].x[i-1][0])
-	  + SQR(psl->_array[l].x[i][1] - psl->_array[l].x[i-1][1])
-	  + SQR(psl->_array[l].x[i][2] - psl->_array[l].x[i-1][2]);
-	cl[cidx][3] = sqrt(xl);
-	cidx++;
-      }
     }
   } // end of for(l)
 
