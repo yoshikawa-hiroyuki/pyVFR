@@ -172,7 +172,7 @@ class VisRegOrthoScalar(VisRegularMesh):
             showType = gfxNode.RT_WIRE
             self._mesh.setAuxLineColor(True, self._colors[0])
         if self._showMap and not p_data is None:
-            showType += gfxNode.RT_SMOOTH
+            showType += gfxNode.RT_SHADING
         self._mesh.setRenderMode(showType)
 
         self.generateBbox()

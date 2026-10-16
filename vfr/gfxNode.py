@@ -41,8 +41,8 @@ def rgba_to_id(color):
 
 #----------------------------------------------------------------------
 """レンダリングモードタイプ"""
-(RT_NONE, RT_SMOOTH, RT_FLAT, RT_NOLIGHT,
- RT_WIRE, RT_POINT, RT_NOTEXTURE) = (0,) + tuple([(1<<x) for x in range(6)])
+(RT_NONE, RT_SHADING, RT_NOLIGHT,
+ RT_WIRE, RT_POINT, RT_NOTEXTURE) = (0,) + tuple([(1<<x) for x in range(5)])
 """セレクションテスト対象タイプ"""
 (PT_NONE, PT_OBJECT, PT_BBOX) = (0,) + tuple([(1<<x) for x in range(2)])
 """表面属性タイプ"""
@@ -133,7 +133,7 @@ class GfxNode(Node, Obj):
       _colorMode: 色タイプ(AT_WHOLE,AT_PER_VERTEX,AT_PER_FACE)
       _feedbackMode: フィードバックテストタイプ(FB_VERTEX,FB_FACE,FB_EDGE)
       _useLocalMaterial: 自分自身のマテリアル情報を有効にするか
-      _renderMode: レンダリングモード(RT_NONE,RT_SMOOTH,RT_FLAT,RT_NOLIGHT,
+      _renderMode: レンダリングモード(RT_NONE,RT_SHADING,RT_NOLIGHT,
            RT_WIRE,RT_POINT,RT_NOTEXTUREの合成)
       _pickable: セレクション対象フラグ
       _faceMode: ポリゴンフェースモード(PF_FRONT,PF_BACK,PF_BOTH)
@@ -199,7 +199,7 @@ class GfxNode(Node, Obj):
         self._lineWidth = 1.0
         self._pointSize = 1.0
         self._pointSymbol = SYM_NORMAL
-        self._renderMode = RT_SMOOTH
+        self._renderMode = RT_SHADING
         self._faceMode = PF_BOTH
 
         self._auxLineColor = [1.0, 1.0, 1.0, 1.0]
@@ -621,7 +621,7 @@ class GfxNode(Node, Obj):
             glUseProgram(self._shader.program_id)
         
         # rendering
-        if self._renderMode & (RT_SMOOTH | RT_NOLIGHT | RT_FLAT) :
+        if self._renderMode & RT_SHADING :
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
             if self._renderMode & RT_NOLIGHT :
                 glDisable(GL_LIGHTING)
@@ -832,7 +832,7 @@ class GfxNode(Node, Obj):
         self.nColors = 0
         self._colors = None
         self._colorMode = 0
-        if self._renderMode & (RT_SMOOTH | RT_NOLIGHT | RT_FLAT) :
+        if self._renderMode & RT_SHADING :
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL)
             self.renderSolid()
         if self._renderMode & RT_WIRE:
@@ -1013,8 +1013,7 @@ class GfxNode(Node, Obj):
         レンダリングモードの設定
         - rm: レンダリングモード.以下のコンビネーションで指定します．
               RT_NONE: レンダリングしない
-              RT_SMOOTH: ポリゴン表示(スムースシェーディング)
-              RT_FLAT: ポリゴン表示(フラットシェーディング)
+              RT_SHADING: ポリゴン表示(シェーディング)
               RT_NOLIGHT: ポリゴン表示(シェーディングなし)
               RT_WIRE: ワイヤーフレーム表示
               RT_POINT: ポイント表示
@@ -1264,7 +1263,7 @@ class GfxNode(Node, Obj):
         - spc: スペキュラー反射係数(RGBA: 0.0〜)
         """
         self._specular[0:4] = spc[0:4]
-        if self._renderMode & (RT_SMOOTH|RT_FLAT):
+        if self._renderMode & RT_SHADING:
             self.notice()
 
     def getSpecular(self):
@@ -1279,7 +1278,7 @@ class GfxNode(Node, Obj):
         - amb: 環境光反射係数(RGBA: 0.0〜)
         """
         self._ambient[0:4] = amb[0:4]
-        if self._renderMode & (RT_SMOOTH|RT_FLAT):
+        if self._renderMode & RT_SHADING:
             self.notice()
 
     def getAmbient(self):
@@ -1297,7 +1296,7 @@ class GfxNode(Node, Obj):
             self._shinines[0] = shn
         except:
             self._shinines[0] = shn[0]
-        if self._renderMode & (RT_SMOOTH|RT_FLAT):
+        if self._renderMode & RT_SHADING:
             self.notice()
 
     def getShininess(self):
@@ -1312,7 +1311,7 @@ class GfxNode(Node, Obj):
         - ems: 放射光係数(RGBA: 0.0〜)
         """
         self._emission[0:4] = ems[0:4]
-        if self._renderMode & (RT_SMOOTH|RT_FLAT):
+        if self._renderMode & RT_SHADING:
             self.notice()
 
     def getEmission(self):

@@ -168,7 +168,7 @@ class PrimSet(GfxNode):
                 glScalef(l, l, l)
 
         # call renderer of primitive
-        if rt & (RT_SMOOTH | RT_NOLIGHT | RT_FLAT):
+        if rt & RT_SHADING:
             self._prim.renderSolid()
         if rt & RT_WIRE:
             self._prim.renderWire()
@@ -188,10 +188,10 @@ class PrimSet(GfxNode):
             if self._colorMode == AT_PER_VERTEX and index < self.nColors:
                 glColor4fv(self._colors[index])
             if index < self.nNormals:
-                self.callPrimRender(RT_SMOOTH,
+                self.callPrimRender(RT_SHADING,
                                     self._verts[index], self._normals[index])
             else:
-                self.callPrimRender(RT_SMOOTH, self._verts[index])
+                self.callPrimRender(RT_SHADING, self._verts[index])
         return
 
     def renderWire(self):

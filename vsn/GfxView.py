@@ -387,7 +387,7 @@ class GfxView(object):
         """
         if not self.faxis: return
         if mode:
-            self.faxis.setRenderMode(gfxNode.RT_SMOOTH)
+            self.faxis.setRenderMode(gfxNode.RT_SHADING)
         else:
             self.faxis.setRenderMode(gfxNode.RT_NONE)
         self.faxis.chkNotice()

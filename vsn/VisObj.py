@@ -23,7 +23,7 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         gfxGroup.GfxGroup.__init__(self, **args)
         xform.XForm.__init__(self)
 
-        self.showType = gfxNode.RT_SMOOTH
+        self.showType = gfxNode.RT_SHADING
 
         self.hilight = 0.0
         self.antiAlias = False
