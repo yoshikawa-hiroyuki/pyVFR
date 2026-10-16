@@ -1,18 +1,19 @@
 # makefile for impl
-G=-g
+
 TARGET = vsn_impl.so
 OBJS =	vsnIsosurf.o \
-	vsnInterpolate..o \
+	vsnInterpolate.o \
 	vsnLineStripSet.o \
 	vsnStreamLines.o \
 
+OPT=-g -O0
 VFR_LIBDIR = ../../vfr/lib
 
 CXX=g++
-CXXFLAGS=$(G) -fPIC -I$(VFR_LIBDIR)
+CXXFLAGS=$(OPT) -fPIC -I$(VFR_LIBDIR)
 
 LINK=$(CXX)
-LDFLAGS=-L$(VFR_LIBDIR) -Wl,-rpath,'$$ORIGIN'/$(VFR_LIBDIR) -shared -fPIC $(G)
+LDFLAGS=-L$(VFR_LIBDIR) -Wl,-rpath,'$$ORIGIN'/$(VFR_LIBDIR) -shared -fPIC $(OPT)
 LDLIBS=-lvfr_impl -lGL -lGLU
 
 RM = rm -f

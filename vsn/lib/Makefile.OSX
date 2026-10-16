@@ -2,8 +2,8 @@
 
 TARGET = vsn_impl.dylib
 OBJS =	vsnIsosurf.o \
-	vsnLineStripSet.o \
 	vsnInterpolate.o \
+	vsnLineStripSet.o \
 	vsnStreamLines.o \
 
 OPT=-g -O0

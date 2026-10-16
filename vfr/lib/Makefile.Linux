@@ -1,5 +1,5 @@
 # makefile for impl
-G=-g
+
 TARGET = vfr_impl.so
 OBJS = drawArea_impl.o \
      gfxLetters_impl.o \
@@ -10,14 +10,15 @@ OBJS = drawArea_impl.o \
      obj_impl.o \
      obj_io_impl.o \
 
+OPT=-g -O0
 INC_DIR = .
 BIN_DIR = ../../bin
 
 CXX=g++
-CXXFLAGS=$(G) -fPIC -I$(INC_DIR)
+CXXFLAGS=$(OPT) -fPIC -I$(INC_DIR)
 
 LINK=$(CXX)
-LDFLAGS=-shared -fPIC $(G)
+LDFLAGS=-shared -fPIC $(OPT)
 LDLIBS=-lGL -lGLU
 
 RM = rm -f

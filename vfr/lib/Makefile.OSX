@@ -11,7 +11,7 @@ OBJS = drawArea_impl.o \
      obj_io_impl.o \
 
 OPT=-g -O0
-INC_DIR = 
+INC_DIR = .
 BIN_DIR = ../../bin
 
 CXX=g++
