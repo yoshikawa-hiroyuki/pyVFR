@@ -330,7 +330,7 @@ class VisRegOrthoVector(VisRegularMesh):
             new_sliceAxs = VisRegularMesh.S_Xa
         if new_sliceAxs is None:
             new_sliceAxs = VisRegularMesh.S_Za
-            self._slicePlaneButtons[VisRegularMesh.S_Za].GetValue(True)
+            self._slicePlaneButtons[VisRegularMesh.S_Za].SetValue(True)
         if self._slicePlane == new_sliceAxs:
             return
 

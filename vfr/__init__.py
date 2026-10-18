@@ -25,6 +25,7 @@ __all__ = [
     "primSet",
     "scene",
     "triangles",
+    "tria_io",
     "utilMath",
     "vectors",
     ]

@@ -70,7 +70,7 @@ def Read(path, fmt =None):
         return (ReadSLA(path), 'sla')
     if xfmt == 'slb':
         return (ReadSLB(path), 'slb')
-    return None
+    return (None, None)
 
 def Write(tria, path, fmt =None):
     """
