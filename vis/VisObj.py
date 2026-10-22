@@ -52,7 +52,7 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         """
         gfxGroup.GfxGroup.destroy(self)
         if not self.xformDlg is None:
-            self.xformDlg.Destroy()
+            #self.xformDlg.Destroy()
             self.xformDlg = None
         if not self.cmapBarDisp is None:
             self.cmapBarDisp.destroy()
@@ -226,7 +226,8 @@ class VisObj(gfxGroup.GfxGroup, xform.XForm):
         """
         if self.xformDlg is None:
             if not show: return
-            self.xformDlg = XFormDlg.XFormDlg(self, None)
+            vf = App.GetVsnApp().getViewFrame()
+            self.xformDlg = XFormDlg.XFormDlg(self, vf)
             title = 'XForm: ' + self._name
             self.xformDlg.SetTitle(title)
         self.xformDlg.Show(show)

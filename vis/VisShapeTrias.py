@@ -5,8 +5,6 @@ VisSampler
 """
 import sys, os
 import numpy as np
-import ctypes as C
-import copy
 if not ".." in sys.path:
     sys.path = sys.path + [".."]
 from vfr import *
@@ -270,6 +268,7 @@ if __name__ == '__main__':
 
     trias = VisShapeTrias(name='TestTrias')
     trias.loadFile('data/cube.obj')
+    trias.setS((1.0, 2.0, 3.0))
     arena.addObject(trias)
 
     app.run(debug=True)
