@@ -336,6 +336,8 @@ class CMapDlg(wx.Dialog):
         # prepare objects
         self.glCanvas = CMapCanvas(self, self)
         self.cMapBar = CMapBar(self, size=(256,25))
+        self.glCanvas.setLut(self.lut)
+        self.cMapBar.setLut(self.lut)
 
         ritems = ('red', 'green', 'blue', 'alpha')
         channelRadio = wx.RadioBox(self, -1, 'Color channel',
