@@ -27,7 +27,7 @@ class VisLabelText(VisObj):
         if 'font' in args and args['font'] != letters.FONT_LINE:
             self.showType = gfxNode.RT_SHADING
         
-        self._letters = letters.Letters(args)
+        self._letters = letters.Letters(name='Label_Text', localMaterial=False)
 
         if self.update(**args):
             self.show = True
@@ -59,17 +59,21 @@ class VisLabelText(VisObj):
                 self.showType = gfxNode.RT_WIRE
             else:
                 self.showType = gfxNode.RT_SHADING
+            self._letters.generateBbox()
             self._letters.notice()
         if not textBuf is None:
             self._letters.setLetters(textBuf)
         if not alignType is None:
             self._letters.alignType = alignType
+            self._letters.generateBbox()
             self._letters.notice()            
         if not fontScale is None:
             self._letters.fontScale = fontScale
+            self._letters.generateBbox()
             self._letters.notice()            
         if not spaceRate is None:
             self._letters.spaceRate = spaceRate
+            self._letters.generateBbox()
             self._letters.notice()
 
         self.generateBbox()
@@ -259,7 +263,7 @@ class VisLabel2D(VisLabelText):
         show text label in 2D View
     """
     def __init__(self, **args):
-        VisLabelText.__init__(self)
+        VisLabelText.__init__(self, **args)
         if not self._letters is None:
             app = App.GetVsnApp()
             camera = app.getCamera()
@@ -276,7 +280,7 @@ class VisLabel3D(VisLabelText):
         show text label in 2D View
     """
     def __init__(self, **args):
-        VisLabelText.__init__(self)
+        VisLabelText.__init__(self, **args)
         if not self._letters is None:
             self.addChild(self._letters)
         return
@@ -284,4 +288,17 @@ class VisLabel3D(VisLabelText):
     def getVisObjType(self):
         return "Label3D"
 
+#----------------------------------------------------------------------
+if __name__ == '__main__':
+    import App
+    app = App.GetVsnApp()
+    arena = app.getArena()
+
+    label2d = VisLabel2D(font=letters.FONT_HELVETICA, textBuf="Label 2D")
+    arena.addObject(label2d)
+
+    label3d = VisLabel3D(font=letters.FONT_HELVETICA, textBuf="Label 3D")
+    arena.addObject(label3d)
+
+    app.run(debug=True)
     
