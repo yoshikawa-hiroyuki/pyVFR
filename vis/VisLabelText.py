@@ -106,12 +106,10 @@ class VisLabelText(VisObj):
         sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
         sizerH.Add(wx.StaticText(self.paramsPnl, label='label text'))
         self._textBuffTxt = wx.TextCtrl(self.paramsPnl, value='', \
-                                        size=wx.Size(-1, 30), \
-                                        style=wx.TE_PROCESS_ENTER | \
-                                        wx.TE_MULTILINE)
+                                        style=wx.TE_MULTILINE)
         sizerH.Add(self._textBuffTxt, flag=wx.EXPAND|wx.ALL, proportion=1, \
                    border=3)
-        self._textBuffTxt.Bind(wx.EVT_TEXT_ENTER, self.OnTextBuffTxt)
+        self._textBuffTxt.Bind(wx.EVT_KILL_FOCUS, self.OnTextBuffTxt)
 
         # alignType
         self._alignButtons = []
@@ -170,11 +168,11 @@ class VisLabelText(VisObj):
         self._textBuffTxt.SetValue(self._letters.textBuf)
 
         # alignType
-        if self._letters.font.alignType == gfxNode.AL_LEFT:
+        if self._letters.alignType == gfxNode.AL_LEFT:
             self._alignButtons[0].SetValue(True)
-        elif self._letters.font.alignType == gfxNode.AL_RIGHT:
+        elif self._letters.alignType == gfxNode.AL_RIGHT:
             self._alignButtons[1].SetValue(True)
-        elif self._letters.font.alignType == gfxNode.AL_CENTER:
+        elif self._letters.alignType == gfxNode.AL_CENTER:
             self._alignButtons[2].SetValue(True)
 
         # fontScale
@@ -269,10 +267,26 @@ class VisLabel2D(VisLabelText):
             camera = app.getCamera()
             camera.addToFront(self._letters)
         return
+
+    def destroy(self):
+        if not self._letters is None:
+            app = App.GetVsnApp()
+            camera = app.getCamera()
+            camera.remFromFront(self._letters)
+            del self._letters
+            self._letters = None
+        VisLabelText.destroy(self)
+        return
     
     def getVisObjType(self):
         return "Label2D"
 
+    def setBaseColor(self, color):
+        self._colors[0][0:3] = color[0:3]
+        if not self._letters is None:
+            self._letters._colors[0][0:3] = color[0:3]
+            self._letters.notice()
+        return
 
 #----------------------------------------------------------------------
 class VisLabel3D(VisLabelText):
@@ -294,7 +308,8 @@ if __name__ == '__main__':
     app = App.GetVsnApp()
     arena = app.getArena()
 
-    label2d = VisLabel2D(font=letters.FONT_HELVETICA, textBuf="Label 2D")
+    label2d = VisLabel2D(font=letters.FONT_HELVETICA, fontScale=0.1,
+                         textBuf="Label 2D\n2D Label")
     arena.addObject(label2d)
 
     label3d = VisLabel3D(font=letters.FONT_HELVETICA, textBuf="Label 3D")
