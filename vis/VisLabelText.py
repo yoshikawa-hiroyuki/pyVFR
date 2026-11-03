@@ -272,7 +272,8 @@ class VisLabel2D(VisLabelText):
         if not self._letters is None:
             app = App.GetVsnApp()
             camera = app.getCamera()
-            camera.remFromFront(self._letters)
+            if not camera is None:
+                camera.remFromFront(self._letters)
             del self._letters
             self._letters = None
         VisLabelText.destroy(self)

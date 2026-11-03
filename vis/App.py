@@ -8,7 +8,10 @@ import contextlib
 if not ".." in sys.path:
     sys.path = sys.path + [".."]
 
-    
+import wx
+import code
+import threading
+
 #----------------------------------------------------------------------
 # Suppressing ‘warning logs’ in the macOS OpenGL implementation
 
@@ -26,14 +29,6 @@ def suppress_stderr():
 
 
 #----------------------------------------------------------------------
-import wx
-import code
-import threading
-
-import ViewFrame
-from Arena import Arena
-
-
 class VsnApp(wx.App):
     """ Appクラス
     Vsnアプリケーションのメインクラスです．
@@ -49,11 +44,13 @@ class VsnApp(wx.App):
 
         return
 
-
     def OnInit(self):
         """ アプリケーション初期化
         wxPythonフレームワークより自動的に呼び出されます．
         """
+        import ViewFrame
+        from Arena import Arena
+        
         self.SetAppName('Vsn')
 
         # ViewFrame window
@@ -67,20 +64,17 @@ class VsnApp(wx.App):
 
         return True
 
-
     def OnCloseApp(self, event):
         """ 終了処理のイベントハンドラ.
         """
         self.Destroy()
         return
 
-
     def Refresh(self):
         """ リフレッシュ.
         """
         if not self._viewFrame: return
         self._viewFrame.Refresh()
-
 
     def quit(self):
         """ 終了.
@@ -89,7 +83,6 @@ class VsnApp(wx.App):
         self.ExitMainLoop()
         return
     
-
     def reset(self):
         """ リセット.
         """
@@ -100,7 +93,6 @@ class VsnApp(wx.App):
         self._viewFrame.reset()
 
         return
-
 
     def getViewFrame(self):
         """ ViewFrameの取得.
@@ -121,8 +113,9 @@ class VsnApp(wx.App):
         """ ViewCameraの取得.
           戻り値 -> ViewCamera.
         """
-        return self._viewFrame.gfxView.camera
-
+        if not self._viewFrame is None and not self._viewFrame.gfxView is None:
+            return self._viewFrame.gfxView.camera
+        return None
 
     @staticmethod
     def console_procedure():
@@ -146,12 +139,9 @@ g_app = VsnApp()
 def GetVsnApp():
     return g_app
 
-
 #----------------------------------------------------------------------
 if __name__ == '__main__':
     #app = VsnApp()
     app = GetVsnApp()
     app.run_console()
     app.run()
-    
-
