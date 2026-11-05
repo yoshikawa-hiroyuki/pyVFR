@@ -12,7 +12,7 @@ from VisRegularMesh import *
 
 
 #----------------------------------------------------------------------
-class VisRegOrthoContour(VisRegularMesh):
+class VisRegOrthoContour(VisRegOrthoSlice):
     """ VisRegOrthoContourクラス
         show contour lines on orthogonal slice of regular mesh scalar data 
     """
@@ -20,15 +20,12 @@ class VisRegOrthoContour(VisRegularMesh):
     def __init__(self, **args):
         """
         args: data =None, bbox =None, orgPitch =None, coord =None,
-              slicePlane =VisRegularMesh.S_Za, sliceIndex =None,
+              slicePlane =VisRegOrthoSlice.S_Za, sliceIndex =None,
               numLines =5, lineWidth =1.0, useLut =True, minMax =None
         """
-        VisRegularMesh.__init__(self, **args)
+        VisRegOrthoSlice.__init__(self, **args)
         self.showType = gfxNode.RT_WIRE
         
-        self.p_data = None
-        self._slicePlane = VisRegularMesh.S_Za
-        self._sliceIndex = -1
         self._numLines = 5
         self._useLut = True
         
@@ -42,19 +39,6 @@ class VisRegOrthoContour(VisRegularMesh):
     def setData(self, data, forceUpd=True, minmaxUpd=True):
         return VisRegularMesh.setScalarData(self, data, forceUpd, minmaxUpd)
         
-    def setSliceParam(self, slicePlane=-1, sliceIndex=-1, forceUpd=True):
-        if forceUpd:
-            self._needUpdate = True
-        if slicePlane in (VisRegularMesh.S_Za, VisRegularMesh.S_Xa,
-                          VisRegularMesh.S_Ya):
-            if slicePlane != self._slicePlane:
-                self._slicePlane = slicePlane
-                self._needUpdate = True
-        if sliceIndex >= 0 and self._sliceIndex != sliceIndex:
-            self._sliceIndex = sliceIndex
-            self._needUpdate = True
-        return True
-
     def setNumLines(self, numLines, forceUpd=True):
         if forceUpd:
             self._needUpdate = True
@@ -116,8 +100,7 @@ class VisRegOrthoContour(VisRegularMesh):
         (coord, bbox, o_p) = VisRegularMesh.getCoordArgs(self, **args)
         lut = None if not 'lut' in args else args['lut']
 
-        slicePlane = -1 if not 'slicePlane' in args else args['slicePlane']
-        sliceIndex = -1 if not 'sliceIndex' in args else args['sliceIndex']
+        slicePlane, sliceIndex = self.parseParamArgs(**args)
         
         numLines = self._numLines if not 'numLines' in args \
             else args['numLines']
@@ -156,30 +139,9 @@ class VisRegOrthoContour(VisRegularMesh):
         if self.p_coord is None:
             return False
 
-        dims = self.p_coord.shape
-        if self._slicePlane == VisRegularMesh.S_Za:
-            S = dims[0]
-        elif self._slicePlane == VisRegularMesh.S_Xa:
-            S = dims[2]
-        else: # S_Ya
-            S = dims[1]
-        if self._sliceIndex < 0:
-            self._sliceIndex = int(S / 2)
-        elif self._sliceIndex >= S:
-            self._sliceIndex = S -1
-            
-        if self._slicePlane == VisRegularMesh.S_Za:
-            cslice = self.p_coord[self._sliceIndex, :, :, :]
-            if not p_data is None:
-                dslice = p_data[self._sliceIndex, :, :]
-        elif self._slicePlane == VisRegularMesh.S_Xa:
-            cslice = self.p_coord[:, :, self._sliceIndex, :]
-            if not p_data is None:
-                dslice = p_data[:, :, self._sliceIndex]
-        else: # S_Ya
-            cslice = self.p_coord[:, self._sliceIndex, :, :]
-            if not p_data is None:
-                dslice = p_data[:, self._sliceIndex, :]
+        # orthogonal slice
+        cslice, dslice = self.orthoSlice(p_data)
+
         M, N = (cslice.shape[0], cslice.shape[1])
         dv = 0.0 if self._numLines < 2 else \
             (self.lut.maxVal - self.lut.minVal) / (self._numLines -1)
@@ -278,46 +240,8 @@ class VisRegOrthoContour(VisRegularMesh):
 
         sizerTop = wx.BoxSizer(orient=wx.VERTICAL)
 
-        # slicePlane
-        sizerH = wx.BoxSizer()
-        sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
-        sizerH.Add(wx.StaticText(self.paramsPnl, label='slice plane'))
-        choices = ["XY", "XZ", "YZ"]
-        for i, choice in enumerate(choices):
-            style = wx.RB_GROUP if i == 0 else 0
-            rb = wx.RadioButton(self.paramsPnl, label=choice, style=style)
-            rb.Bind(wx.EVT_RADIOBUTTON, self.OnSlicePlaneRadio)
-            sizerH.Add(rb, flag=wx.ALL, border=3)
-            self._slicePlaneButtons.append(rb)
-            continue # for i,choice
-        
-        # sliceIndex
-        sizerH = wx.BoxSizer()
-        sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
-        self._sliceIndexSld = wx.Slider(self.paramsPnl,
-                                        style=wx.SL_HORIZONTAL|wx.SL_LABELS)
-        sizerH.Add(self._sliceIndexSld, flag=wx.EXPAND|wx.ALL, \
-                   proportion=1, border=3)
-        self._sliceIndexSld.Bind(wx.EVT_SLIDER, self.OnSliceIndexSld)
-        self._sliceIndexTxt = wx.TextCtrl(self.paramsPnl, value='', \
-                                          size=wx.Size(50,-1), \
-                                          style=wx.TE_PROCESS_ENTER)
-        sizerH.Add(self._sliceIndexTxt, flag=wx.EXPAND|wx.ALL, border=3)
-        self._sliceIndexTxt.Bind(wx.EVT_TEXT_ENTER, self.OnSliceIndexTxt)
-
-        # sliceIndex adjust buttons
-        sizerH = wx.BoxSizer()
-        sizerTop.Add(sizerH, flag=wx.EXPAND|wx.ALL, border=2)
-        self._sliceMinusBtn = wx.Button(self.paramsPnl, label='<', \
-                                        style=wx.BU_EXACTFIT)
-        sizerH.Add(self._sliceMinusBtn, flag=wx.EXPAND|wx.ALL, border=3)
-        self._sliceMinusBtn.Bind(wx.EVT_BUTTON, self.OnSliceMinusBtn)
-        self._slicePlusBtn = wx.Button(self.paramsPnl, label='>', \
-                                       style=wx.BU_EXACTFIT)
-        sizerH.Add(self._slicePlusBtn, flag=wx.EXPAND|wx.ALL, border=3)
-        self._slicePlusBtn.Bind(wx.EVT_BUTTON, self.OnSlicePlusBtn)
-        sizerTop.Add(wx.StaticLine(self.paramsPnl, size=wx.Size(3,3)), \
-                     flag=wx.EXPAND|wx.ALL, border=0)
+        # slicePlane, sliceIndex, sliceIndex adjust buttons
+        self.insertSlicePP(sizerTop)
         
         # numLines
         sizerH = wx.BoxSizer()
@@ -358,21 +282,8 @@ class VisRegOrthoContour(VisRegularMesh):
         if self.paramsPnl is None:
             return False
 
-        # slicePlane
-        if self._slicePlane == VisRegularMesh.S_Ya:
-            self._slicePlaneButtons[VisRegularMesh.S_Ya].SetValue(True)
-        elif self._slicePlane == VisRegularMesh.S_Xa:
-            self._slicePlaneButtons[VisRegularMesh.S_Xa].SetValue(True)
-        else:
-            self._slicePlaneButtons[VisRegularMesh.S_Za].SetValue(True)
-        
-        # sliceIndex
-        if not self.p_data is None and len(self.p_data.shape) == 3:
-            self._sliceIndexSld.SetRange(0, self.p_data.shape[self._slicePlane])
-            if self._sliceIndex < 0:
-                self._sliceIndex = int(self.p_data.shape[self._slicePlane]/2)
-            self._sliceIndexSld.SetValue(self._sliceIndex)
-            self._sliceIndexTxt.SetValue(str(self._sliceIndex))
+        # slicePlane, sliceIndex
+        self.updateSlicePP()
 
         # numLines
         self._numLinesTxt.SetValue(str(self._numLines))
@@ -386,76 +297,6 @@ class VisRegOrthoContour(VisRegularMesh):
         return True
 
     # Event Handlers
-
-    def OnSlicePlaneRadio(self, event):
-        if self.p_data is None or len(self.p_data.shape) != 3:
-            return
-        new_sliceAxs = None
-        if self._slicePlaneButtons[VisRegularMesh.S_Za].GetValue() == True:
-            new_sliceAxs = VisRegularMesh.S_Za
-        elif self._slicePlaneButtons[VisRegularMesh.S_Ya].GetValue() == True:
-            new_sliceAxs = VisRegularMesh.S_Ya
-        elif self._slicePlaneButtons[VisRegularMesh.S_Xa].GetValue() == True:
-            new_sliceAxs = VisRegularMesh.S_Xa
-        if new_sliceAxs is None:
-            new_sliceAxs = VisRegularMesh.S_Za
-            self._slicePlaneButtons[VisRegularMesh.S_Za].SetValue(True)
-        if self._slicePlane == new_sliceAxs:
-            return
-        
-        if self.setSliceParam(slicePlane=new_sliceAxs):
-            self._sliceIndexSld.SetRange(0, self.p_data.shape[self._slicePlane])
-            if self.update():
-                self.chkNotice()
-        return
-
-    def OnSliceIndexSld(self, event):
-        if self.p_data is None or len(self.p_data.shape) != 3:
-            return
-        val = self._sliceIndexSld.GetValue()
-        if val == self._sliceIndex:
-            return
-        if self.setSliceParam(sliceIndex=val):
-            self._sliceIndexTxt.SetValue(str(self._sliceIndex))
-            if self.update():
-                self.chkNotice()
-        return
-
-    def OnSliceIndexTxt(self, event):
-        if self.p_data is None or len(self.p_data.shape) != 3:
-            return
-        try:
-            val = int(self._sliceIndexTxt.GetValue())
-        except:
-            self._sliceIndexTxt.SetValue(str(self._sliceIndex))
-            return
-        if val == self._sliceIndex:
-            return
-        if self.setSliceParam(sliceIndex=val):
-            self._sliceIndexSld.SetValue(self._sliceIndex)
-            if self.update():
-                self.chkNotice()
-        return
-
-    def OnSliceMinusBtn(self, event):
-        if self.p_data is None or len(self.p_data.shape) != 3:
-            return
-        if self.setSliceParam(sliceIndex=self._sliceIndex -1):
-            self._sliceIndexSld.SetValue(self._sliceIndex)
-            self._sliceIndexTxt.SetValue(str(self._sliceIndex))
-            if self.update():
-                self.chkNotice()
-        return
-
-    def OnSlicePlusBtn(self, event):
-        if self.p_data is None or len(self.p_data.shape) != 3:
-            return
-        if self.setSliceParam(sliceIndex=self._sliceIndex +1):
-            self._sliceIndexSld.SetValue(self._sliceIndex)
-            self._sliceIndexTxt.SetValue(str(self._sliceIndex))
-            if self.update():
-                self.chkNotice()
-        return
 
     def OnUseLutChk(self, event):
         val = self._useLutChk.GetValue()
