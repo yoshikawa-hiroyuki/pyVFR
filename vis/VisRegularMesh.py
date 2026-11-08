@@ -185,17 +185,17 @@ class VisRegOrthoSlice(VisRegularMesh):
             self._sliceIndex = S -1
 
         if self._slicePlane == self.S_Za:
-            cslice = self.p_coord[self._sliceIndex, :, :, :]
+            cslice = np.ascontiguousarray(self.p_coord[self._sliceIndex,:,:,:])
             if not p_data is None:
-                dslice = p_data[self._sliceIndex, :, :]
+                dslice = np.ascontiguousarray(p_data[self._sliceIndex,:,:])
         elif self._slicePlane == self.S_Xa:
-            cslice = self.p_coord[:, :, self._sliceIndex, :]
+            cslice = np.ascontiguousarray(self.p_coord[:,:,self._sliceIndex,:])
             if not p_data is None:
-                dslice = p_data[:, :, self._sliceIndex]
+                dslice = np.ascontiguousarray(p_data[:,:,self._sliceIndex])
         else: # S_Ya
-            cslice = self.p_coord[:, self._sliceIndex, :, :]
+            cslice = np.ascontiguousarray(self.p_coord[:,self._sliceIndex,:,:])
             if not p_data is None:
-                dslice = p_data[:, self._sliceIndex, :]
+                dslice = np.ascontiguousarray(p_data[:,self._sliceIndex,:])
 
         return (cslice, dslice)
 

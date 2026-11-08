@@ -3,7 +3,8 @@
 #
 
 TARGET=vsn_impl
-OBJS=	vsnIsosurf.obj \
+OBJS=	vsnContourLines.obj \
+	vsnIsosurf.obj \
 	vsnInterpolate.obj \
 	vsnLineStripSet.obj \
 	vsnStreamLines.obj \

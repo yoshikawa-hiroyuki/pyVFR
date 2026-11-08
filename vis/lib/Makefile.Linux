@@ -1,7 +1,8 @@
 # makefile for impl
 
 TARGET = vsn_impl.so
-OBJS =	vsnIsosurf.o \
+OBJS =	vsnContourLines.o \
+	vsnIsosurf.o \
 	vsnInterpolate.o \
 	vsnLineStripSet.o \
 	vsnStreamLines.o \

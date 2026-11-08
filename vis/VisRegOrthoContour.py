@@ -5,12 +5,33 @@ VisRegOrthoContour
 """
 import sys, os
 import numpy as np
+import ctypes as C
 if not ".." in sys.path:
     sys.path = sys.path + [".."]
 from vfr import *
 from VisRegularMesh import *
 
 
+#----------------------------------------------------------------------
+vsn_impl = np.ctypeslib.load_library('vsn_impl',
+                                     os.path.join(os.path.dirname(__file__),
+                                                  "lib"))
+vsn_impl.CountLineSegments.restype = C.c_int
+vsn_impl.CountLineSegments.argtypes = [
+    C.POINTER(C.c_float),   # pvd
+    C.c_size_t*2,           # dims[2]
+    C.c_float,              # val
+]
+
+vsn_impl.AddLineSegments.restype = C.c_int
+vsn_impl.AddLineSegments.argtypes = [
+    C.c_void_p,             # p
+    C.POINTER(C.c_float*3), # pvc
+    C.POINTER(C.c_float),   # pvd
+    C.c_size_t*2,           # dims[2]
+    C.c_float,              # val
+]
+    
 #----------------------------------------------------------------------
 class VisRegOrthoContour(VisRegOrthoSlice):
     """ VisRegOrthoContourクラス
@@ -57,42 +78,6 @@ class VisRegOrthoContour(VisRegOrthoSlice):
             self._needUpdate = True
         return True
 
-    def calcLineSeg(self, p0, p1, p2, val0, val1, val2, val, lp1, lp2):
-        vFlg = [0, 0, 0]
-        j = 0
-        if val0 > val: vFlg[0] = 1; j += 1
-        if val1 > val: vFlg[1] = 1; j += 1
-        if val2 > val: vFlg[2] = 1; j += 1
-        if j == 0 or j == 3: return False
-
-        pos = [p0, p1, p2]
-        vals = [val0, val1, val2]
-        top = -1; bot = [-1, -1]
-        if j == 1:
-            idx = 0
-            for i in range(3):
-                if vFlg[i] == 1: top = i
-                else: bot[idx] = i; idx += 1
-        else:
-            idx = 0
-            for i in range(3):
-                if vFlg[i] == 0: top = i
-                else: bot[idx] = i; idx += 1
-
-        # lp1: top---bot[0]
-        if vals[top] == vals[bot[0]]: return False
-        t = (val - vals[top]) / (vals[bot[0]] - vals[top])
-        lp = pos[top] + (pos[bot[0]] - pos[top]) * t
-        lp1[0] = lp[0]; lp1[1] = lp[1]; lp1[2] = lp[2]
-
-        # lp2 : top---bot[1]
-        if vals[top] == vals[bot[1]]: return False
-        t = (val - vals[top]) / (vals[bot[1]] - vals[top])
-        lp = pos[top] + (pos[bot[1]] - pos[top]) * t
-        lp2[0] = lp[0]; lp2[1] = lp[1]; lp2[2] = lp[2]
-
-        return True
-        
     def update(self, **args):
         # pickup args
         data = None if not 'data' in args else args['data']
@@ -142,14 +127,11 @@ class VisRegOrthoContour(VisRegOrthoSlice):
         # orthogonal slice
         cslice, dslice = self.orthoSlice(p_data)
 
-        M, N = (cslice.shape[0], cslice.shape[1])
+        M, N = (cslice.shape[1], cslice.shape[0])
         dv = 0.0 if self._numLines < 2 else \
             (self.lut.maxVal - self.lut.minVal) / (self._numLines -1)
 
         # lines loop
-        vv = np.zeros(5)
-        vc = np.zeros(3, dtype=np.float32)
-        lp1 = np.zeros(3, dtype=np.float32); lp2 = np.zeros(3, dtype=np.float32)
         val = self.lut.minVal
         for l in range(self._numLines):
             # allocate lines
@@ -157,66 +139,21 @@ class VisRegOrthoContour(VisRegOrthoSlice):
             self.addChild(lns)
 
             # count valid cells
-            cnt_vc = 0
-            for j in range(N-1):
-                for i in range(M-1):
-                    vflgs = np.zeros(5, dtype=np.int8)
-                    vv[0] = dslice[i  , j  ]
-                    vv[1] = dslice[i+1, j  ]
-                    vv[2] = dslice[i+1, j+1]
-                    vv[3] = dslice[i  , j+1]
-                    vv[4] = (vv[0] + vv[1] + vv[2] +vv[3]) * 0.25
-                    for k in range(5):
-                        if vv[k] > val: vflgs[k] = 1
-                    for vidxs in ((0, 1, 4), (1, 2, 4), (2, 3, 4), (3, 0, 4)):
-                        vfSum = vflgs[vidxs[0]]+vflgs[vidxs[1]]+vflgs[vidxs[2]]
-                        if vfSum == 1 or vfSum == 2:
-                            cnt_vc += 1
-                    continue # end of for(i)
-                continue # end of for(j)
+            cnt_vc = vsn_impl.CountLineSegments(
+                dslice.ctypes.data_as(C.POINTER(C.c_float)),
+                (C.c_size_t*2)(M, N), val)
             if cnt_vc < 1:
                 val += dv
                 continue
             lns.alcData(nV=cnt_vc*2)
 
-            idx = 0
-            for j in range(N-1):
-                for i in range(M-1):
-                    vv[0] = dslice[i  , j  ]
-                    vv[1] = dslice[i+1, j  ]
-                    vv[2] = dslice[i+1, j+1]
-                    vv[3] = dslice[i  , j+1]
-                    vv[4] = (vv[0] + vv[1] + vv[2] +vv[3]) * 0.25
-                        
-                    vc[0] = (cslice[i  , j  , 0] + cslice[i+1, j  , 0] + \
-                             cslice[i+1, j+1, 0] + cslice[i  , j+1, 0]) * 0.25
-                    vc[1] = (cslice[i  , j  , 1] + cslice[i+1, j  , 1] + \
-                             cslice[i+1, j+1, 1] + cslice[i  , j+1, 1]) * 0.25
-                    vc[2] = (cslice[i  , j  , 2] + cslice[i+1, j  , 2] + \
-                             cslice[i+1, j+1, 2] + cslice[i  , j+1, 2]) * 0.25
-                        
-                    # triangle(0, 1, C)
-                    if self.calcLineSeg(cslice[i,j,:], cslice[i+1,j,:], vc,
-                                        vv[0], vv[1], vv[4], val, lp1, lp2):
-                        lns._verts[idx][:] = lp1[:]; idx += 1
-                        lns._verts[idx][:] = lp2[:]; idx += 1
-                    # triangle(1, 2, C)
-                    if self.calcLineSeg(cslice[i+1,j,:], cslice[i+1,j+1,:], vc,
-                                        vv[1], vv[2], vv[4], val, lp1, lp2):
-                        lns._verts[idx][:] = lp1[:]; idx += 1
-                        lns._verts[idx][:] = lp2[:]; idx += 1
-                    # triangle(2, 3, C)
-                    if self.calcLineSeg(cslice[i+1,j+1,:], cslice[i,j+1,:], vc,
-                                        vv[2], vv[3], vv[4], val, lp1, lp2):
-                        lns._verts[idx][:] = lp1[:]; idx += 1
-                        lns._verts[idx][:] = lp2[:]; idx += 1
-                    # triangle(3, 0, C)
-                    if self.calcLineSeg(cslice[i,j+1,:], cslice[i,j,:], vc,
-                                        vv[3], vv[0], vv[4], val, lp1, lp2):
-                        lns._verts[idx][:] = lp1[:]; idx += 1
-                        lns._verts[idx][:] = lp2[:]; idx += 1
-                    continue # end of for(i)
-                continue # end of for(j)
+            idx = vsn_impl.AddLineSegments(
+                lns.p_impl,
+                cslice.ctypes.data_as(C.POINTER(C.c_float*3)),
+                dslice.ctypes.data_as(C.POINTER(C.c_float)),
+                (C.c_size_t*2)(M, N), val)
+            if idx > 0:
+                lns.updateObjImpl()
 
             # lines' attr
             lns.generateBbox()
